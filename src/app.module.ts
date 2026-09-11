@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { LoggerModule } from 'nestjs-pino'
 import { DrizzleModule } from './adapters/database/drizzle/drizzle.module'
+import { TasksController } from './adapters/api/controllers/tasks.controller'
 
 @Module({
   imports: [
@@ -24,5 +25,6 @@ import { DrizzleModule } from './adapters/database/drizzle/drizzle.module'
       },
     }),
   ],
+  controllers: [TasksController],
 })
 export class AppModule {}
