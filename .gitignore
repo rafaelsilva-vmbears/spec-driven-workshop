@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+tsconfig.build.tsbuildinfo
+
+# Environment
+.env
+
+# Test coverage
+coverage/
+
+# Drizzle migrations metadata
+drizzle/meta/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Playwright
+test-results/
+playwright-report/
