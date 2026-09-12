@@ -15,7 +15,9 @@
     "test:cov": "vitest run --config vitest.unit.ts --coverage",
     "test:e2e": "vitest run --config vitest.e2e.ts",
     "test:integration": "vitest run --config vitest.integration.ts",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "test:pw": "playwright test",
+    "test:pw:report": "playwright show-report"
   },
   "license": "ISC",
   "packageManager": "pnpm@10.17.1",
@@ -44,6 +46,7 @@
     "@nestjs/cli": "^12.0.0",
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
+    "@playwright/test": "^1.63.0",
     "@swc/cli": "^0.8.1",
     "@swc/core": "^1.16.2",
     "@types/node": "^22.20.2",
