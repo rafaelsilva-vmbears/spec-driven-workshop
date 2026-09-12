@@ -7,15 +7,15 @@ Glossário ubíquo e modelo de domínio da API de Gestão de Tarefas.
 ### Task (Tarefa)
 A unidade atômica de trabalho gerenciada pelo sistema.
 - **Identificador**: UUID v4 imutável (`id`).
-- **Campos obrigatórios**: `title` (1 a 100 caracteres, não vazio), `status` (TaskStatus), `createdAt`, `updatedAt`.
-- **Campos opcionais**: `description` (texto livre até 500 caracteres, pode ser `null` ou ausente).
+- **Campos obrigatórios**: `title` (3 a 100 caracteres, não vazio), `status` (TaskStatus), `createdAt`, `updatedAt`.
+- **Campos opcionais**: `description` (texto livre até 2000 caracteres, pode ser `null` ou ausente).
 - **Controle de exclusão**: `deletedAt` (data da exclusão lógica ou `null` se ativa).
 
 ### TaskStatus (Status da Tarefa)
 Representa a fase do ciclo de vida da tarefa.
 - `PENDING`: Tarefa criada e aguardando execução (estado padrão inicial).
 - `IN_PROGRESS`: Tarefa em execução ativa.
-- `COMPLETED`: Tarefa concluída com sucesso.
+- `DONE`: Tarefa concluída com sucesso.
 
 ### Soft Delete (Exclusão Lógica)
 Mecanismo de preservação de histórico onde tarefas excluídas não são removidas fisicamente da tabela `tasks`.
