@@ -34,6 +34,14 @@ class InMemoryTaskRepository implements TaskRepository {
     }
   }
 
+  async update(task: Task): Promise<Task> {
+    const index = this.tasks.findIndex((t) => t.id === task.id)
+    if (index !== -1) {
+      this.tasks[index] = task
+    }
+    return task
+  }
+
   clear(): void {
     this.tasks = []
   }
@@ -232,9 +240,7 @@ describe('GET /tasks (Integration)', () => {
     })
 
     it('should return 400 when pageSize is less than 1', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/tasks?pageSize=0')
-        .set('x-api-key', VALID_API_KEY)
+      const response = await request(app.getHttpServer()).get('/tasks?pageSize=0').set('x-api-key', VALID_API_KEY)
 
       expect(response.status).toBe(400)
       expect(response.body.code).toBe('VALIDATION_ERROR')
@@ -242,9 +248,7 @@ describe('GET /tasks (Integration)', () => {
     })
 
     it('should return 400 when pageSize exceeds maximum of 100', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/tasks?pageSize=101')
-        .set('x-api-key', VALID_API_KEY)
+      const response = await request(app.getHttpServer()).get('/tasks?pageSize=101').set('x-api-key', VALID_API_KEY)
 
       expect(response.status).toBe(400)
       expect(response.body.code).toBe('VALIDATION_ERROR')
@@ -252,9 +256,7 @@ describe('GET /tasks (Integration)', () => {
     })
 
     it('should return 400 when page or pageSize is not a valid integer', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/tasks?page=invalid')
-        .set('x-api-key', VALID_API_KEY)
+      const response = await request(app.getHttpServer()).get('/tasks?page=invalid').set('x-api-key', VALID_API_KEY)
 
       expect(response.status).toBe(400)
       expect(response.body.code).toBe('VALIDATION_ERROR')

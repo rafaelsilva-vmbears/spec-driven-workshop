@@ -32,6 +32,14 @@ class InMemoryTaskRepository implements TaskRepository {
     }
   }
 
+  async update(task: Task): Promise<Task> {
+    const index = this.tasks.findIndex((t) => t.id === task.id)
+    if (index !== -1) {
+      this.tasks[index] = task
+    }
+    return task
+  }
+
   clear(): void {
     this.tasks = []
   }
@@ -91,9 +99,7 @@ describe('POST /tasks (Integration)', () => {
 
   describe('Authentication', () => {
     it('should return 401 when x-api-key header is missing', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .send({ title: 'Task without auth' })
+      const response = await request(app.getHttpServer()).post('/tasks').send({ title: 'Task without auth' })
 
       expect(response.status).toBe(401)
       expect(response.body).toEqual({
@@ -129,23 +135,18 @@ describe('POST /tasks (Integration)', () => {
         description: null,
         status: TaskStatus.PENDING,
       })
-      expect(response.body.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      )
+      expect(response.body.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
       expect(response.body.createdAt).toBeDefined()
       expect(response.body.updatedAt).toBeDefined()
       expect(inMemoryRepo.getAll()).toHaveLength(1)
     })
 
     it('should create a task with full data (HTTP 201)', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({
-          title: 'Full task',
-          description: 'Detailed description for task',
-          status: TaskStatus.IN_PROGRESS,
-        })
+      const response = await request(app.getHttpServer()).post('/tasks').set('x-api-key', VALID_API_KEY).send({
+        title: 'Full task',
+        description: 'Detailed description for task',
+        status: TaskStatus.IN_PROGRESS,
+      })
 
       expect(response.status).toBe(201)
       expect(response.body).toMatchObject({
@@ -160,10 +161,7 @@ describe('POST /tasks (Integration)', () => {
 
   describe('Validation Failures (HTTP 400)', () => {
     it('should return 400 when title is missing', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({})
+      const response = await request(app.getHttpServer()).post('/tasks').set('x-api-key', VALID_API_KEY).send({})
 
       expect(response.status).toBe(400)
       expect(response.body.code).toBe('VALIDATION_ERROR')
@@ -185,13 +183,10 @@ describe('POST /tasks (Integration)', () => {
     })
 
     it('should return 400 when status is invalid', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({
-          title: 'Valid title',
-          status: 'COMPLETED',
-        })
+      const response = await request(app.getHttpServer()).post('/tasks').set('x-api-key', VALID_API_KEY).send({
+        title: 'Valid title',
+        status: 'COMPLETED',
+      })
 
       expect(response.status).toBe(400)
       expect(response.body.code).toBe('VALIDATION_ERROR')
@@ -200,13 +195,10 @@ describe('POST /tasks (Integration)', () => {
     })
 
     it('should return 400 when unknown properties are sent (forbidNonWhitelisted)', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({
-          title: 'Valid title',
-          extraField: 'not-allowed',
-        })
+      const response = await request(app.getHttpServer()).post('/tasks').set('x-api-key', VALID_API_KEY).send({
+        title: 'Valid title',
+        extraField: 'not-allowed',
+      })
 
       expect(response.status).toBe(400)
       expect(response.body.code).toBe('VALIDATION_ERROR')

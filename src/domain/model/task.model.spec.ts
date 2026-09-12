@@ -179,4 +179,156 @@ describe('Task Domain Model', () => {
       expect(task.deletedAt).toBe(deletedAt)
     })
   })
+
+  describe('update', () => {
+    it('should update title and renew updatedAt', () => {
+      const initialUpdatedAt = new Date('2026-01-01T00:00:00Z')
+      const task = new Task({
+        title: 'Original title',
+        updatedAt: initialUpdatedAt,
+      })
+
+      const hasChanged = task.update({ title: 'Updated title' })
+
+      expect(hasChanged).toBe(true)
+      expect(task.title).toBe('Updated title')
+      expect(task.updatedAt.getTime()).toBeGreaterThan(initialUpdatedAt.getTime())
+    })
+
+    it('should update description and renew updatedAt', () => {
+      const initialUpdatedAt = new Date('2026-01-01T00:00:00Z')
+      const task = new Task({
+        title: 'Original title',
+        description: 'Original description',
+        updatedAt: initialUpdatedAt,
+      })
+
+      const hasChanged = task.update({ description: 'New description' })
+
+      expect(hasChanged).toBe(true)
+      expect(task.description).toBe('New description')
+      expect(task.updatedAt.getTime()).toBeGreaterThan(initialUpdatedAt.getTime())
+    })
+
+    it('should clear description when null is provided', () => {
+      const initialUpdatedAt = new Date('2026-01-01T00:00:00Z')
+      const task = new Task({
+        title: 'Original title',
+        description: 'Existing description',
+        updatedAt: initialUpdatedAt,
+      })
+
+      const hasChanged = task.update({ description: null })
+
+      expect(hasChanged).toBe(true)
+      expect(task.description).toBeNull()
+      expect(task.updatedAt.getTime()).toBeGreaterThan(initialUpdatedAt.getTime())
+    })
+
+    it('should update status and renew updatedAt', () => {
+      const initialUpdatedAt = new Date('2026-01-01T00:00:00Z')
+      const task = new Task({
+        title: 'Original title',
+        status: TaskStatus.PENDING,
+        updatedAt: initialUpdatedAt,
+      })
+
+      const hasChanged = task.update({ status: TaskStatus.IN_PROGRESS })
+
+      expect(hasChanged).toBe(true)
+      expect(task.status).toBe(TaskStatus.IN_PROGRESS)
+      expect(task.updatedAt.getTime()).toBeGreaterThan(initialUpdatedAt.getTime())
+    })
+
+    it('should update multiple fields simultaneously', () => {
+      const initialUpdatedAt = new Date('2026-01-01T00:00:00Z')
+      const task = new Task({
+        title: 'Original title',
+        description: 'Original description',
+        status: TaskStatus.PENDING,
+        updatedAt: initialUpdatedAt,
+      })
+
+      const hasChanged = task.update({
+        title: 'New title',
+        description: 'New description',
+        status: TaskStatus.DONE,
+      })
+
+      expect(hasChanged).toBe(true)
+      expect(task.title).toBe('New title')
+      expect(task.description).toBe('New description')
+      expect(task.status).toBe(TaskStatus.DONE)
+      expect(task.updatedAt.getTime()).toBeGreaterThan(initialUpdatedAt.getTime())
+    })
+
+    it('should return false and not renew updatedAt when no fields are modified (no-op)', () => {
+      const initialUpdatedAt = new Date('2026-01-01T00:00:00Z')
+      const task = new Task({
+        title: 'Original title',
+        description: 'Original description',
+        status: TaskStatus.PENDING,
+        updatedAt: initialUpdatedAt,
+      })
+
+      const hasChangedWithSameValues = task.update({
+        title: 'Original title',
+        description: 'Original description',
+        status: TaskStatus.PENDING,
+      })
+
+      expect(hasChangedWithSameValues).toBe(false)
+      expect(task.updatedAt).toBe(initialUpdatedAt)
+
+      const hasChangedWithEmptyPayload = task.update({})
+      expect(hasChangedWithEmptyPayload).toBe(false)
+      expect(task.updatedAt).toBe(initialUpdatedAt)
+
+      const taskWithNullDesc = new Task({
+        title: 'Original title',
+        description: null,
+        updatedAt: initialUpdatedAt,
+      })
+      const hasChangedWithNullDesc = taskWithNullDesc.update({ description: null })
+      expect(hasChangedWithNullDesc).toBe(false)
+      expect(taskWithNullDesc.updatedAt).toBe(initialUpdatedAt)
+    })
+
+    it('should throw TaskValidationException when updating deleted task', () => {
+      const task = new Task({ title: 'Task to delete' })
+      task.delete()
+
+      expect(() => task.update({ title: 'New title' })).toThrow(TaskValidationException)
+      expect(() => task.update({ title: 'New title' })).toThrow('Task is already deleted')
+    })
+
+    it('should throw TaskValidationException when title is invalid on update', () => {
+      const task = new Task({ title: 'Original title' })
+
+      expect(() => task.update({ title: null as unknown as string })).toThrow(TaskValidationException)
+      expect(() => task.update({ title: null as unknown as string })).toThrow('Title is required')
+
+      expect(() => task.update({ title: '' })).toThrow(TaskValidationException)
+      expect(() => task.update({ title: '   ' })).toThrow('Title cannot be empty')
+
+      expect(() => task.update({ title: 'ab' })).toThrow('Title must be between 3 and 100 characters')
+      expect(() => task.update({ title: 'a'.repeat(101) })).toThrow('Title must be between 3 and 100 characters')
+      expect(() => task.update({ title: 123 as unknown as string })).toThrow('Title must be a string')
+    })
+
+    it('should throw TaskValidationException when description is invalid on update', () => {
+      const task = new Task({ title: 'Original title' })
+
+      expect(() => task.update({ description: 12345 as unknown as string })).toThrow('Description must be a string')
+      expect(() => task.update({ description: 'a'.repeat(2001) })).toThrow('Description cannot exceed 2000 characters')
+    })
+
+    it('should throw TaskValidationException when status is invalid on update', () => {
+      const task = new Task({ title: 'Original title' })
+
+      expect(() => task.update({ status: 'INVALID' as unknown as TaskStatus })).toThrow(
+        'Invalid status. Allowed values: PENDING, IN_PROGRESS, DONE'
+      )
+    })
+  })
 })

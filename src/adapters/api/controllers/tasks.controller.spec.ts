@@ -3,8 +3,10 @@ import { Task, TaskStatus } from '@domain/model/task.model'
 import { CreateTaskUseCase } from '@domain/usecase/create-task.usecase'
 import { GetTaskUseCase } from '@domain/usecase/get-task.usecase'
 import { ListTasksUseCase } from '@domain/usecase/list-tasks.usecase'
+import { UpdateTaskUseCase } from '@domain/usecase/update-task.usecase'
 import { CreateTaskDto } from '../dto/create-task.dto'
 import { ListTasksQueryDto } from '../dto/list-tasks-query.dto'
+import { UpdateTaskDto } from '../dto/update-task.dto'
 import { TasksController } from './tasks.controller'
 
 describe('TasksController', () => {
@@ -152,5 +154,48 @@ describe('TasksController', () => {
       pageSize: 10,
     })
   })
-})
 
+  it('should call UpdateTaskUseCase with id and dto and return mapped TaskResponseDto', async () => {
+    const updatedTask = new Task({
+      id: '123e4567-e89b-42d3-a456-426614174000',
+      title: 'Updated controller task',
+      description: 'Updated testing controller',
+      status: TaskStatus.DONE,
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      updatedAt: new Date('2026-01-02T00:00:00Z'),
+      deletedAt: null,
+    })
+
+    const mockCreateTaskUseCase = {} as unknown as CreateTaskUseCase
+    const mockGetTaskUseCase = {} as unknown as GetTaskUseCase
+    const mockListTasksUseCase = {} as unknown as ListTasksUseCase
+    const mockUpdateTaskUseCase = {
+      execute: vi.fn().mockResolvedValue(updatedTask),
+    } as unknown as UpdateTaskUseCase
+
+    const controller = new TasksController(
+      mockCreateTaskUseCase,
+      mockGetTaskUseCase,
+      mockListTasksUseCase,
+      mockUpdateTaskUseCase
+    )
+
+    const dto: UpdateTaskDto = {
+      title: 'Updated controller task',
+      description: 'Updated testing controller',
+      status: TaskStatus.DONE,
+    }
+
+    const response = await controller.update('123e4567-e89b-42d3-a456-426614174000', dto)
+
+    expect(mockUpdateTaskUseCase.execute).toHaveBeenCalledWith('123e4567-e89b-42d3-a456-426614174000', dto)
+    expect(response).toEqual({
+      id: updatedTask.id,
+      title: updatedTask.title,
+      description: updatedTask.description,
+      status: updatedTask.status,
+      createdAt: updatedTask.createdAt,
+      updatedAt: updatedTask.updatedAt,
+    })
+  })
+})

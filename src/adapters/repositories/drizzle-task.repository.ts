@@ -58,10 +58,7 @@ export class DrizzleTaskRepository extends TaskRepository {
   }
 
   async findAll(params: FindAllTasksParams): Promise<PaginatedResult<Task>> {
-    const [totalResult] = await this.db
-      .select({ total: count() })
-      .from(tasks)
-      .where(isNull(tasks.deletedAt))
+    const [totalResult] = await this.db.select({ total: count() }).from(tasks).where(isNull(tasks.deletedAt))
 
     const rows = await this.db
       .select()
@@ -90,5 +87,27 @@ export class DrizzleTaskRepository extends TaskRepository {
       pageSize: params.pageSize,
     }
   }
-}
 
+  async update(task: Task): Promise<Task> {
+    const [row] = await this.db
+      .update(tasks)
+      .set({
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        updatedAt: task.updatedAt,
+      })
+      .where(and(eq(tasks.id, task.id), isNull(tasks.deletedAt)))
+      .returning()
+
+    return new Task({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status as TaskStatus,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      deletedAt: row.deletedAt,
+    })
+  }
+}

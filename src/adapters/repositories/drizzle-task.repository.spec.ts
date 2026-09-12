@@ -174,4 +174,52 @@ describe('DrizzleTaskRepository', () => {
     expect(result.total).toBe(0)
     expect(result.items).toEqual([])
   })
+
+  it('should update and return a Task domain model', async () => {
+    const mockReturnedRow = {
+      id: '123e4567-e89b-42d3-a456-426614174000',
+      title: 'Updated Database task',
+      description: 'Updated description',
+      status: 'DONE',
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      updatedAt: new Date('2026-01-02T00:00:00Z'),
+      deletedAt: null,
+    }
+
+    const mockReturning = vi.fn().mockResolvedValue([mockReturnedRow])
+    const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+    const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+    const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+
+    const mockDb = {
+      update: mockUpdate,
+    } as unknown as DrizzleDB
+
+    const repository = new DrizzleTaskRepository(mockDb)
+
+    const taskToUpdate = new Task({
+      id: '123e4567-e89b-42d3-a456-426614174000',
+      title: 'Updated Database task',
+      description: 'Updated description',
+      status: TaskStatus.DONE,
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      updatedAt: new Date('2026-01-02T00:00:00Z'),
+      deletedAt: null,
+    })
+
+    const result = await repository.update(taskToUpdate)
+
+    expect(mockUpdate).toHaveBeenCalledOnce()
+    expect(mockSet).toHaveBeenCalledWith({
+      title: taskToUpdate.title,
+      description: taskToUpdate.description,
+      status: taskToUpdate.status,
+      updatedAt: taskToUpdate.updatedAt,
+    })
+    expect(result).toBeInstanceOf(Task)
+    expect(result.id).toBe(mockReturnedRow.id)
+    expect(result.title).toBe(mockReturnedRow.title)
+    expect(result.description).toBe(mockReturnedRow.description)
+    expect(result.status).toBe(TaskStatus.DONE)
+  })
 })

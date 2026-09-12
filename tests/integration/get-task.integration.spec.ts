@@ -32,6 +32,14 @@ class InMemoryTaskRepository implements TaskRepository {
     }
   }
 
+  async update(task: Task): Promise<Task> {
+    const index = this.tasks.findIndex((t) => t.id === task.id)
+    if (index !== -1) {
+      this.tasks[index] = task
+    }
+    return task
+  }
+
   clear(): void {
     this.tasks = []
   }
@@ -91,9 +99,7 @@ describe('GET /tasks/:id (Integration)', () => {
 
   describe('Authentication', () => {
     it('should return 401 when x-api-key header is missing', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/tasks/123e4567-e89b-42d3-a456-426614174000'
-      )
+      const response = await request(app.getHttpServer()).get('/tasks/123e4567-e89b-42d3-a456-426614174000')
 
       expect(response.status).toBe(401)
       expect(response.body).toEqual({
@@ -126,9 +132,7 @@ describe('GET /tasks/:id (Integration)', () => {
       })
       inMemoryRepo.addDirectly(existingTask)
 
-      const response = await request(app.getHttpServer())
-        .get(`/tasks/${taskId}`)
-        .set('x-api-key', VALID_API_KEY)
+      const response = await request(app.getHttpServer()).get(`/tasks/${taskId}`).set('x-api-key', VALID_API_KEY)
 
       expect(response.status).toBe(200)
       expect(response.body).toEqual({
@@ -146,9 +150,7 @@ describe('GET /tasks/:id (Integration)', () => {
     it('should return 404 with TASK_NOT_FOUND when task does not exist', async () => {
       const nonExistentId = '123e4567-e89b-42d3-a456-426614174999'
 
-      const response = await request(app.getHttpServer())
-        .get(`/tasks/${nonExistentId}`)
-        .set('x-api-key', VALID_API_KEY)
+      const response = await request(app.getHttpServer()).get(`/tasks/${nonExistentId}`).set('x-api-key', VALID_API_KEY)
 
       expect(response.status).toBe(404)
       expect(response.body).toEqual({
@@ -168,9 +170,7 @@ describe('GET /tasks/:id (Integration)', () => {
       })
       inMemoryRepo.addDirectly(softDeletedTask)
 
-      const response = await request(app.getHttpServer())
-        .get(`/tasks/${softDeletedId}`)
-        .set('x-api-key', VALID_API_KEY)
+      const response = await request(app.getHttpServer()).get(`/tasks/${softDeletedId}`).set('x-api-key', VALID_API_KEY)
 
       expect(response.status).toBe(404)
       expect(response.body).toEqual({
@@ -184,9 +184,7 @@ describe('GET /tasks/:id (Integration)', () => {
     it('should return 400 when id is not a valid UUID', async () => {
       const invalidId = 'not-a-valid-uuid'
 
-      const response = await request(app.getHttpServer())
-        .get(`/tasks/${invalidId}`)
-        .set('x-api-key', VALID_API_KEY)
+      const response = await request(app.getHttpServer()).get(`/tasks/${invalidId}`).set('x-api-key', VALID_API_KEY)
 
       expect(response.status).toBe(400)
       expect(response.body.code).toBe('BAD_REQUEST')
