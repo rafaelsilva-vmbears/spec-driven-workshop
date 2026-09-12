@@ -16,6 +16,17 @@ class InMemoryTaskRepository implements TaskRepository {
     const task = this.tasks.find((t) => t.id === id)
     return task ?? null
   }
+
+  async findAll(params: { page: number; pageSize: number }) {
+    const active = this.tasks.filter((t) => t.deletedAt === null)
+    const offset = params.page * params.pageSize
+    return {
+      items: active.slice(offset, offset + params.pageSize),
+      total: active.length,
+      page: params.page,
+      pageSize: params.pageSize,
+    }
+  }
 }
 
 describe('GetTaskUseCase', () => {

@@ -103,4 +103,75 @@ describe('DrizzleTaskRepository', () => {
     expect(mockWhere).toHaveBeenCalledOnce()
     expect(result).toBeNull()
   })
+
+  it('should find all active tasks with pagination and return PaginatedResult', async () => {
+    const mockReturnedRow = {
+      id: '123e4567-e89b-42d3-a456-426614174000',
+      title: 'Active Task',
+      description: 'Active task description',
+      status: 'PENDING',
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      updatedAt: new Date('2026-01-01T00:00:00Z'),
+      deletedAt: null,
+    }
+
+    const mockCountWhere = vi.fn().mockResolvedValue([{ total: 10 }])
+    const mockCountFrom = vi.fn().mockReturnValue({ where: mockCountWhere })
+
+    const mockOffset = vi.fn().mockResolvedValue([mockReturnedRow])
+    const mockLimit = vi.fn().mockReturnValue({ offset: mockOffset })
+    const mockItemsWhere = vi.fn().mockReturnValue({ limit: mockLimit })
+    const mockItemsFrom = vi.fn().mockReturnValue({ where: mockItemsWhere })
+
+    const mockSelect = vi.fn().mockImplementation((arg) => {
+      if (arg && arg.total) {
+        return { from: mockCountFrom }
+      }
+      return { from: mockItemsFrom }
+    })
+
+    const mockDb = {
+      select: mockSelect,
+    } as unknown as DrizzleDB
+
+    const repository = new DrizzleTaskRepository(mockDb)
+    const result = await repository.findAll({ page: 1, pageSize: 2 })
+
+    expect(mockSelect).toHaveBeenCalledTimes(2)
+    expect(mockLimit).toHaveBeenCalledWith(2)
+    expect(mockOffset).toHaveBeenCalledWith(2)
+    expect(result.total).toBe(10)
+    expect(result.page).toBe(1)
+    expect(result.pageSize).toBe(2)
+    expect(result.items).toHaveLength(1)
+    expect(result.items[0]).toBeInstanceOf(Task)
+    expect(result.items[0].id).toBe(mockReturnedRow.id)
+  })
+
+  it('should default total to 0 if count query returns empty array', async () => {
+    const mockCountWhere = vi.fn().mockResolvedValue([])
+    const mockCountFrom = vi.fn().mockReturnValue({ where: mockCountWhere })
+
+    const mockOffset = vi.fn().mockResolvedValue([])
+    const mockLimit = vi.fn().mockReturnValue({ offset: mockOffset })
+    const mockItemsWhere = vi.fn().mockReturnValue({ limit: mockLimit })
+    const mockItemsFrom = vi.fn().mockReturnValue({ where: mockItemsWhere })
+
+    const mockSelect = vi.fn().mockImplementation((arg) => {
+      if (arg && arg.total) {
+        return { from: mockCountFrom }
+      }
+      return { from: mockItemsFrom }
+    })
+
+    const mockDb = {
+      select: mockSelect,
+    } as unknown as DrizzleDB
+
+    const repository = new DrizzleTaskRepository(mockDb)
+    const result = await repository.findAll({ page: 0, pageSize: 10 })
+
+    expect(result.total).toBe(0)
+    expect(result.items).toEqual([])
+  })
 })

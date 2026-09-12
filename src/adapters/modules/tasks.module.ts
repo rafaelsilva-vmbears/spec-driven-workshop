@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { TaskRepository } from '@domain/port/repositories/task.repository'
 import { CreateTaskUseCase } from '@domain/usecase/create-task.usecase'
 import { GetTaskUseCase } from '@domain/usecase/get-task.usecase'
+import { ListTasksUseCase } from '@domain/usecase/list-tasks.usecase'
 import { TasksController } from '../api/controllers/tasks.controller'
 import { DrizzleTaskRepository } from '../repositories/drizzle-task.repository'
 
@@ -22,7 +23,13 @@ import { DrizzleTaskRepository } from '../repositories/drizzle-task.repository'
       useFactory: (taskRepository: TaskRepository) => new GetTaskUseCase(taskRepository),
       inject: [TaskRepository],
     },
+    {
+      provide: ListTasksUseCase,
+      useFactory: (taskRepository: TaskRepository) => new ListTasksUseCase(taskRepository),
+      inject: [TaskRepository],
+    },
   ],
-  exports: [TaskRepository, CreateTaskUseCase, GetTaskUseCase],
+  exports: [TaskRepository, CreateTaskUseCase, GetTaskUseCase, ListTasksUseCase],
 })
 export class TasksModule {}
+

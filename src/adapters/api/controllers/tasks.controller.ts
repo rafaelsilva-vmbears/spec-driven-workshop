@@ -1,9 +1,12 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common'
 import { ApiHeader, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CreateTaskUseCase } from '@domain/usecase/create-task.usecase'
 import { GetTaskUseCase } from '@domain/usecase/get-task.usecase'
+import { ListTasksUseCase } from '@domain/usecase/list-tasks.usecase'
 import { CreateTaskDto } from '../dto/create-task.dto'
 import { ErrorResponseDto } from '../dto/error-response.dto'
+import { ListTasksQueryDto } from '../dto/list-tasks-query.dto'
+import { PaginatedTasksResponseDto } from '../dto/paginated-tasks-response.dto'
 import { TaskResponseDto } from '../dto/task-response.dto'
 
 @ApiTags('tasks')
@@ -11,7 +14,8 @@ import { TaskResponseDto } from '../dto/task-response.dto'
 export class TasksController {
   constructor(
     private readonly createTaskUseCase: CreateTaskUseCase,
-    private readonly getTaskUseCase: GetTaskUseCase
+    private readonly getTaskUseCase: GetTaskUseCase,
+    private readonly listTasksUseCase: ListTasksUseCase
   ) {}
 
   @Post()
@@ -30,6 +34,20 @@ export class TasksController {
     return TaskResponseDto.fromDomain(task)
   }
 
+  @Get()
+  @ApiOperation({ summary: 'Listar tarefas com paginação' })
+  @ApiHeader({ name: 'x-api-key', description: 'Chave de API para autenticação' })
+  @ApiResponse({ status: 200, description: 'Tarefas listadas com sucesso', type: PaginatedTasksResponseDto })
+  @ApiResponse({ status: 400, description: 'Parâmetros de query inválidos', type: ErrorResponseDto })
+  @ApiResponse({ status: 401, description: 'Não autorizado (x-api-key ausente ou inválida)', type: ErrorResponseDto })
+  async list(@Query() query: ListTasksQueryDto): Promise<PaginatedTasksResponseDto> {
+    const result = await this.listTasksUseCase.execute({
+      page: query.page ?? 0,
+      pageSize: query.pageSize ?? 10,
+    })
+    return PaginatedTasksResponseDto.fromDomain(result)
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Consultar tarefa por ID' })
   @ApiHeader({ name: 'x-api-key', description: 'Chave de API para autenticação' })
@@ -43,3 +61,4 @@ export class TasksController {
     return TaskResponseDto.fromDomain(task)
   }
 }
+

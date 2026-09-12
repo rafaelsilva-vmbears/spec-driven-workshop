@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { and, eq, isNull } from 'drizzle-orm'
+import { and, count, eq, isNull } from 'drizzle-orm'
 import { Task, TaskStatus } from '@domain/model/task.model'
-import { TaskRepository } from '@domain/port/repositories/task.repository'
+import { FindAllTasksParams, PaginatedResult, TaskRepository } from '@domain/port/repositories/task.repository'
 import { DRIZZLE, DrizzleDB } from '../database/drizzle/drizzle.module'
 import { tasks } from '../database/drizzle/schema'
 
@@ -56,4 +56,39 @@ export class DrizzleTaskRepository extends TaskRepository {
       deletedAt: row.deletedAt,
     })
   }
+
+  async findAll(params: FindAllTasksParams): Promise<PaginatedResult<Task>> {
+    const [totalResult] = await this.db
+      .select({ total: count() })
+      .from(tasks)
+      .where(isNull(tasks.deletedAt))
+
+    const rows = await this.db
+      .select()
+      .from(tasks)
+      .where(isNull(tasks.deletedAt))
+      .limit(params.pageSize)
+      .offset(params.page * params.pageSize)
+
+    const items = rows.map(
+      (row) =>
+        new Task({
+          id: row.id,
+          title: row.title,
+          description: row.description,
+          status: row.status as TaskStatus,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          deletedAt: row.deletedAt,
+        })
+    )
+
+    return {
+      items,
+      total: Number(totalResult?.total ?? 0),
+      page: params.page,
+      pageSize: params.pageSize,
+    }
+  }
 }
+
