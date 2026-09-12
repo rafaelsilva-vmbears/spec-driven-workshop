@@ -73,6 +73,10 @@ The system SHALL expose `GET /tasks/{id}`. The parameter `id` MUST be a valid UU
 - **WHEN** cliente autenticado envia `GET /tasks/{id}` para um UUID não cadastrado
 - **THEN** sistema retorna HTTP 404 com `ErrorResponse` e código `TASK_NOT_FOUND`
 
+#### Scenario: Consulta de tarefa removida via soft delete
+- **WHEN** cliente autenticado envia `GET /tasks/{id}` para um UUID de uma tarefa que foi removida (soft delete)
+- **THEN** sistema retorna HTTP 404 com `ErrorResponse` e código `TASK_NOT_FOUND`
+
 #### Scenario: Consulta com ID inválido
 - **WHEN** cliente autenticado envia `GET /tasks/{id}` com parâmetro que não é UUID válido
 - **THEN** sistema retorna HTTP 400 com `ErrorResponse` e código `VALIDATION_ERROR`

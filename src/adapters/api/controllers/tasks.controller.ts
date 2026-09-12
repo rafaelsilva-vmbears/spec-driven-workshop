@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common'
 import { ApiExtension, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger'
 import {
   CreateTaskDto,
@@ -8,12 +20,16 @@ import {
   UpdateTaskDto,
 } from '../dto'
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
+import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
 
 @ApiTags('tasks')
 @ApiSecurity('ApiKeyAuth')
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly createTaskUseCase: CreateTaskUseCase) {}
+  constructor(
+    private readonly createTaskUseCase: CreateTaskUseCase,
+    private readonly getTaskByIdUseCase: GetTaskByIdUseCase
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -108,8 +124,19 @@ export class TasksController {
     description: 'Tarefa não encontrada',
     type: ErrorResponseDto,
   })
-  async getById(@Param('id') _id: string): Promise<TaskResponseDto> {
-    throw new Error('Method not implemented — planned for US-003')
+  async getById(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string
+  ): Promise<TaskResponseDto> {
+    const task = await this.getTaskByIdUseCase.execute(id)
+
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description ?? undefined,
+      status: task.status,
+      createdAt: task.createdAt.toISOString(),
+      updatedAt: task.updatedAt.toISOString(),
+    }
   }
 
   @Patch(':id')
