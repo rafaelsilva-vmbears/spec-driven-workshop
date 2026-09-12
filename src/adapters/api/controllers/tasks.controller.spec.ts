@@ -26,8 +26,14 @@ describe('TasksController', () => {
     } as unknown as CreateTaskUseCase
     const mockGetTaskUseCase = {} as unknown as GetTaskUseCase
     const mockListTasksUseCase = {} as unknown as ListTasksUseCase
+    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(mockCreateTaskUseCase, mockGetTaskUseCase, mockListTasksUseCase)
+    const controller = new TasksController(
+      mockCreateTaskUseCase,
+      mockGetTaskUseCase,
+      mockListTasksUseCase,
+      mockUpdateTaskUseCase
+    )
 
     const dto: CreateTaskDto = {
       title: 'Controller task',
@@ -64,8 +70,14 @@ describe('TasksController', () => {
       execute: vi.fn().mockResolvedValue(task),
     } as unknown as GetTaskUseCase
     const mockListTasksUseCase = {} as unknown as ListTasksUseCase
+    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(mockCreateTaskUseCase, mockGetTaskUseCase, mockListTasksUseCase)
+    const controller = new TasksController(
+      mockCreateTaskUseCase,
+      mockGetTaskUseCase,
+      mockListTasksUseCase,
+      mockUpdateTaskUseCase
+    )
 
     const response = await controller.findOne('123e4567-e89b-42d3-a456-426614174000')
 
@@ -103,8 +115,14 @@ describe('TasksController', () => {
     const mockListTasksUseCase = {
       execute: vi.fn().mockResolvedValue(mockPaginatedResult),
     } as unknown as ListTasksUseCase
+    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(mockCreateTaskUseCase, mockGetTaskUseCase, mockListTasksUseCase)
+    const controller = new TasksController(
+      mockCreateTaskUseCase,
+      mockGetTaskUseCase,
+      mockListTasksUseCase,
+      mockUpdateTaskUseCase
+    )
 
     const query: ListTasksQueryDto = { page: 0, pageSize: 10 }
     const response = await controller.list(query)
@@ -140,8 +158,14 @@ describe('TasksController', () => {
     const mockListTasksUseCase = {
       execute: vi.fn().mockResolvedValue(mockPaginatedResult),
     } as unknown as ListTasksUseCase
+    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(mockCreateTaskUseCase, mockGetTaskUseCase, mockListTasksUseCase)
+    const controller = new TasksController(
+      mockCreateTaskUseCase,
+      mockGetTaskUseCase,
+      mockListTasksUseCase,
+      mockUpdateTaskUseCase
+    )
 
     const query = {} as ListTasksQueryDto
     const response = await controller.list(query)
