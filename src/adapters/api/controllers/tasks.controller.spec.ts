@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Task, TaskStatus } from '@domain/model/task.model'
 import { CreateTaskUseCase } from '@domain/usecase/create-task.usecase'
+import { DeleteTaskUseCase } from '@domain/usecase/delete-task.usecase'
 import { GetTaskUseCase } from '@domain/usecase/get-task.usecase'
 import { ListTasksUseCase } from '@domain/usecase/list-tasks.usecase'
 import { UpdateTaskUseCase } from '@domain/usecase/update-task.usecase'
@@ -10,6 +11,22 @@ import { UpdateTaskDto } from '../dto/update-task.dto'
 import { TasksController } from './tasks.controller'
 
 describe('TasksController', () => {
+  const createController = (overrides?: {
+    createTaskUseCase?: CreateTaskUseCase
+    getTaskUseCase?: GetTaskUseCase
+    listTasksUseCase?: ListTasksUseCase
+    updateTaskUseCase?: UpdateTaskUseCase
+    deleteTaskUseCase?: DeleteTaskUseCase
+  }) => {
+    return new TasksController(
+      overrides?.createTaskUseCase ?? ({} as unknown as CreateTaskUseCase),
+      overrides?.getTaskUseCase ?? ({} as unknown as GetTaskUseCase),
+      overrides?.listTasksUseCase ?? ({} as unknown as ListTasksUseCase),
+      overrides?.updateTaskUseCase ?? ({} as unknown as UpdateTaskUseCase),
+      overrides?.deleteTaskUseCase ?? ({} as unknown as DeleteTaskUseCase)
+    )
+  }
+
   it('should call CreateTaskUseCase with dto and return mapped TaskResponseDto', async () => {
     const task = new Task({
       id: '123e4567-e89b-42d3-a456-426614174000',
@@ -24,16 +41,8 @@ describe('TasksController', () => {
     const mockCreateTaskUseCase = {
       execute: vi.fn().mockResolvedValue(task),
     } as unknown as CreateTaskUseCase
-    const mockGetTaskUseCase = {} as unknown as GetTaskUseCase
-    const mockListTasksUseCase = {} as unknown as ListTasksUseCase
-    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(
-      mockCreateTaskUseCase,
-      mockGetTaskUseCase,
-      mockListTasksUseCase,
-      mockUpdateTaskUseCase
-    )
+    const controller = createController({ createTaskUseCase: mockCreateTaskUseCase })
 
     const dto: CreateTaskDto = {
       title: 'Controller task',
@@ -65,19 +74,11 @@ describe('TasksController', () => {
       deletedAt: null,
     })
 
-    const mockCreateTaskUseCase = {} as unknown as CreateTaskUseCase
     const mockGetTaskUseCase = {
       execute: vi.fn().mockResolvedValue(task),
     } as unknown as GetTaskUseCase
-    const mockListTasksUseCase = {} as unknown as ListTasksUseCase
-    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(
-      mockCreateTaskUseCase,
-      mockGetTaskUseCase,
-      mockListTasksUseCase,
-      mockUpdateTaskUseCase
-    )
+    const controller = createController({ getTaskUseCase: mockGetTaskUseCase })
 
     const response = await controller.findOne('123e4567-e89b-42d3-a456-426614174000')
 
@@ -110,19 +111,11 @@ describe('TasksController', () => {
       pageSize: 10,
     }
 
-    const mockCreateTaskUseCase = {} as unknown as CreateTaskUseCase
-    const mockGetTaskUseCase = {} as unknown as GetTaskUseCase
     const mockListTasksUseCase = {
       execute: vi.fn().mockResolvedValue(mockPaginatedResult),
     } as unknown as ListTasksUseCase
-    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(
-      mockCreateTaskUseCase,
-      mockGetTaskUseCase,
-      mockListTasksUseCase,
-      mockUpdateTaskUseCase
-    )
+    const controller = createController({ listTasksUseCase: mockListTasksUseCase })
 
     const query: ListTasksQueryDto = { page: 0, pageSize: 10 }
     const response = await controller.list(query)
@@ -153,19 +146,11 @@ describe('TasksController', () => {
       pageSize: 10,
     }
 
-    const mockCreateTaskUseCase = {} as unknown as CreateTaskUseCase
-    const mockGetTaskUseCase = {} as unknown as GetTaskUseCase
     const mockListTasksUseCase = {
       execute: vi.fn().mockResolvedValue(mockPaginatedResult),
     } as unknown as ListTasksUseCase
-    const mockUpdateTaskUseCase = {} as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(
-      mockCreateTaskUseCase,
-      mockGetTaskUseCase,
-      mockListTasksUseCase,
-      mockUpdateTaskUseCase
-    )
+    const controller = createController({ listTasksUseCase: mockListTasksUseCase })
 
     const query = {} as ListTasksQueryDto
     const response = await controller.list(query)
@@ -190,19 +175,11 @@ describe('TasksController', () => {
       deletedAt: null,
     })
 
-    const mockCreateTaskUseCase = {} as unknown as CreateTaskUseCase
-    const mockGetTaskUseCase = {} as unknown as GetTaskUseCase
-    const mockListTasksUseCase = {} as unknown as ListTasksUseCase
     const mockUpdateTaskUseCase = {
       execute: vi.fn().mockResolvedValue(updatedTask),
     } as unknown as UpdateTaskUseCase
 
-    const controller = new TasksController(
-      mockCreateTaskUseCase,
-      mockGetTaskUseCase,
-      mockListTasksUseCase,
-      mockUpdateTaskUseCase
-    )
+    const controller = createController({ updateTaskUseCase: mockUpdateTaskUseCase })
 
     const dto: UpdateTaskDto = {
       title: 'Updated controller task',
@@ -221,5 +198,18 @@ describe('TasksController', () => {
       createdAt: updatedTask.createdAt,
       updatedAt: updatedTask.updatedAt,
     })
+  })
+
+  it('should call DeleteTaskUseCase with id and return void', async () => {
+    const mockDeleteTaskUseCase = {
+      execute: vi.fn().mockResolvedValue(undefined),
+    } as unknown as DeleteTaskUseCase
+
+    const controller = createController({ deleteTaskUseCase: mockDeleteTaskUseCase })
+
+    const response = await controller.remove('123e4567-e89b-42d3-a456-426614174000')
+
+    expect(mockDeleteTaskUseCase.execute).toHaveBeenCalledWith('123e4567-e89b-42d3-a456-426614174000')
+    expect(response).toBeUndefined()
   })
 })

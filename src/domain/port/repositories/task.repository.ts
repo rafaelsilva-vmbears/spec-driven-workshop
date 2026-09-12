@@ -17,4 +17,5 @@ export abstract class TaskRepository {
   abstract findById(id: string): Promise<Task | null>
   abstract findAll(params: FindAllTasksParams): Promise<PaginatedResult<Task>>
   abstract update(task: Task): Promise<Task>
+  abstract delete(id: string): Promise<void>
 }

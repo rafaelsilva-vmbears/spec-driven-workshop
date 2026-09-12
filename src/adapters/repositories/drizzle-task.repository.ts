@@ -110,4 +110,13 @@ export class DrizzleTaskRepository extends TaskRepository {
       deletedAt: row.deletedAt,
     })
   }
+
+  async delete(id: string): Promise<void> {
+    await this.db
+      .update(tasks)
+      .set({
+        deletedAt: new Date(),
+      })
+      .where(and(eq(tasks.id, id), isNull(tasks.deletedAt)))
+  }
 }

@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { TaskNotFoundException } from '../exception/task-not-found.exception'
-import { Task, TaskStatus } from '../model/task.model'
-import { TaskRepository } from '../port/repositories/task.repository'
-import { GetTaskUseCase } from './get-task.usecase'
+import { Task } from '../model/task.model'
+import { FindAllTasksParams, PaginatedResult, TaskRepository } from '../port/repositories/task.repository'
+import { DeleteTaskUseCase } from './delete-task.usecase'
 
 class InMemoryTaskRepository implements TaskRepository {
   public tasks: Task[] = []
@@ -13,11 +13,11 @@ class InMemoryTaskRepository implements TaskRepository {
   }
 
   async findById(id: string): Promise<Task | null> {
-    const task = this.tasks.find((t) => t.id === id)
+    const task = this.tasks.find((t) => t.id === id && t.deletedAt === null)
     return task ?? null
   }
 
-  async findAll(params: { page: number; pageSize: number }) {
+  async findAll(params: FindAllTasksParams): Promise<PaginatedResult<Task>> {
     const active = this.tasks.filter((t) => t.deletedAt === null)
     const offset = params.page * params.pageSize
     return {
@@ -44,30 +44,27 @@ class InMemoryTaskRepository implements TaskRepository {
   }
 }
 
-describe('GetTaskUseCase', () => {
-  it('should return the task when it exists', async () => {
+describe('DeleteTaskUseCase', () => {
+  it('should soft delete active task and persist deletion via repository', async () => {
     const repository = new InMemoryTaskRepository()
     const task = new Task({
       id: '123e4567-e89b-42d3-a456-426614174000',
-      title: 'Existing Task',
-      description: 'Test description',
-      status: TaskStatus.IN_PROGRESS,
+      title: 'Task to delete',
     })
     await repository.create(task)
 
-    const useCase = new GetTaskUseCase(repository)
-    const result = await useCase.execute('123e4567-e89b-42d3-a456-426614174000')
+    const deleteSpy = vi.spyOn(repository, 'delete')
+    const useCase = new DeleteTaskUseCase(repository)
 
-    expect(result).toBeInstanceOf(Task)
-    expect(result.id).toBe(task.id)
-    expect(result.title).toBe('Existing Task')
-    expect(result.description).toBe('Test description')
-    expect(result.status).toBe(TaskStatus.IN_PROGRESS)
+    await useCase.execute(task.id)
+
+    expect(deleteSpy).toHaveBeenCalledWith(task.id)
+    expect(task.isDeleted()).toBe(true)
   })
 
   it('should throw TaskNotFoundException when task does not exist', async () => {
     const repository = new InMemoryTaskRepository()
-    const useCase = new GetTaskUseCase(repository)
+    const useCase = new DeleteTaskUseCase(repository)
 
     const nonExistentId = '123e4567-e89b-42d3-a456-426614174999'
 
@@ -77,5 +74,19 @@ describe('GetTaskUseCase', () => {
       statusCode: 404,
       message: `Task with id '${nonExistentId}' not found`,
     })
+  })
+
+  it('should throw TaskNotFoundException when task is already soft-deleted', async () => {
+    const repository = new InMemoryTaskRepository()
+    const softDeletedTask = new Task({
+      id: '123e4567-e89b-42d3-a456-426614174001',
+      title: 'Already deleted',
+      deletedAt: new Date(),
+    })
+    repository.tasks.push(softDeletedTask)
+
+    const useCase = new DeleteTaskUseCase(repository)
+
+    await expect(useCase.execute(softDeletedTask.id)).rejects.toThrow(TaskNotFoundException)
   })
 })

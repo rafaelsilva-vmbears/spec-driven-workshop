@@ -35,8 +35,14 @@ class InMemoryTaskRepository implements TaskRepository {
     }
     return task
   }
-}
 
+  async delete(id: string): Promise<void> {
+    const task = this.tasks.find((t) => t.id === id)
+    if (task && !task.isDeleted()) {
+      task.delete()
+    }
+  }
+}
 
 describe('CreateTaskUseCase', () => {
   it('should create and persist a task with minimal data', async () => {

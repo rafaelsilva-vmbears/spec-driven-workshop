@@ -1,6 +1,19 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common'
 import { ApiHeader, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CreateTaskUseCase } from '@domain/usecase/create-task.usecase'
+import { DeleteTaskUseCase } from '@domain/usecase/delete-task.usecase'
 import { GetTaskUseCase } from '@domain/usecase/get-task.usecase'
 import { ListTasksUseCase } from '@domain/usecase/list-tasks.usecase'
 import { UpdateTaskUseCase } from '@domain/usecase/update-task.usecase'
@@ -18,7 +31,8 @@ export class TasksController {
     private readonly createTaskUseCase: CreateTaskUseCase,
     private readonly getTaskUseCase: GetTaskUseCase,
     private readonly listTasksUseCase: ListTasksUseCase,
-    private readonly updateTaskUseCase: UpdateTaskUseCase
+    private readonly updateTaskUseCase: UpdateTaskUseCase,
+    private readonly deleteTaskUseCase: DeleteTaskUseCase
   ) {}
 
   @Post()
@@ -78,5 +92,18 @@ export class TasksController {
   ): Promise<TaskResponseDto> {
     const task = await this.updateTaskUseCase.execute(id, dto)
     return TaskResponseDto.fromDomain(task)
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Excluir logicamente uma tarefa' })
+  @ApiHeader({ name: 'x-api-key', description: 'Chave de API para autenticação' })
+  @ApiParam({ name: 'id', description: 'Identificador único da tarefa (UUID v4)', format: 'uuid' })
+  @ApiResponse({ status: 204, description: 'Tarefa excluída com sucesso (sem conteúdo)' })
+  @ApiResponse({ status: 400, description: 'ID inválido (esperado UUID v4)', type: ErrorResponseDto })
+  @ApiResponse({ status: 401, description: 'Não autorizado (x-api-key ausente ou inválida)', type: ErrorResponseDto })
+  @ApiResponse({ status: 404, description: 'Tarefa não encontrada ou já excluída', type: ErrorResponseDto })
+  async remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string): Promise<void> {
+    await this.deleteTaskUseCase.execute(id)
   }
 }

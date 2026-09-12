@@ -222,4 +222,24 @@ describe('DrizzleTaskRepository', () => {
     expect(result.description).toBe(mockReturnedRow.description)
     expect(result.status).toBe(TaskStatus.DONE)
   })
+
+  it('should soft delete task by setting deletedAt', async () => {
+    const mockWhere = vi.fn().mockResolvedValue([])
+    const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+    const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+
+    const mockDb = {
+      update: mockUpdate,
+    } as unknown as DrizzleDB
+
+    const repository = new DrizzleTaskRepository(mockDb)
+
+    await repository.delete('123e4567-e89b-42d3-a456-426614174000')
+
+    expect(mockUpdate).toHaveBeenCalledOnce()
+    expect(mockSet).toHaveBeenCalledWith({
+      deletedAt: expect.any(Date),
+    })
+    expect(mockWhere).toHaveBeenCalledOnce()
+  })
 })
