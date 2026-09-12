@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino'
 import { GlobalExceptionFilter } from './adapters/api/filters/global-exception.filter'
 import { ApiKeyGuard } from './adapters/api/guards/api-key.guard'
 import { DrizzleModule } from './adapters/database/drizzle/drizzle.module'
+import { TasksModule } from './adapters/modules/tasks.module'
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { DrizzleModule } from './adapters/database/drizzle/drizzle.module'
       isGlobal: true,
     }),
     DrizzleModule,
+    TasksModule,
     LoggerModule.forRoot({
       pinoHttp: {
         transport:
