@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Task, TaskStatus } from '@domain/model/task.model'
+import { DrizzleDB } from '../database/drizzle/drizzle.module'
 import { DrizzleTaskRepository } from './drizzle-task.repository'
 
 describe('DrizzleTaskRepository', () => {
@@ -20,7 +21,7 @@ describe('DrizzleTaskRepository', () => {
 
     const mockDb = {
       insert: mockInsert,
-    } as unknown as Parameters<typeof DrizzleTaskRepository.prototype.constructor>[0]
+    } as unknown as DrizzleDB
 
     const repository = new DrizzleTaskRepository(mockDb)
 
