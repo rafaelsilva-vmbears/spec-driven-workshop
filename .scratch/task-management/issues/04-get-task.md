@@ -4,16 +4,16 @@
 
 **Blocked by:** 03: Fatia Vertical de Criação de Tarefa (POST /tasks)
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Acceptance Criteria
 
-- [ ] Extensão do contrato `TaskRepository` com o método abstrato `findById(id: string): Promise<Task | null>`.
-- [ ] Implementação da query no repositório concreto Drizzle filtrando estritamente registros onde `deleted_at IS NULL`.
-- [ ] Caso de uso `GetTaskUseCase` que busca a tarefa e dispara exceção de negócio `TaskNotFoundException` quando o resultado for nulo.
-- [ ] Rota `GET /tasks/:id` no controlador utilizando pipe de validação de UUID v4 para barrar identificadores inválidos.
-- [ ] Testes unitários do caso de uso cobrindo tarefa encontrada e tarefa não encontrada.
-- [ ] Testes de integração/E2E cobrindo:
+- [x] Extensão do contrato `TaskRepository` com o método abstrato `findById(id: string): Promise<Task | null>`.
+- [x] Implementação da query no repositório concreto Drizzle filtrando estritamente registros onde `deleted_at IS NULL`.
+- [x] Caso de uso `GetTaskUseCase` que busca a tarefa e dispara exceção de negócio `TaskNotFoundException` quando o resultado for nulo.
+- [x] Rota `GET /tasks/:id` no controlador utilizando pipe de validação de UUID v4 para barrar identificadores inválidos.
+- [x] Testes unitários do caso de uso cobrindo tarefa encontrada e tarefa não encontrada.
+- [x] Testes de integração/E2E cobrindo:
   - Consulta de tarefa existente (HTTP 200).
   - Consulta com UUID inexistente (HTTP 404 com `TASK_NOT_FOUND`).
   - Consulta com identificador fora do padrão UUID (HTTP 400).

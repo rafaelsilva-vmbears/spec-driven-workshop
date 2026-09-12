@@ -53,4 +53,54 @@ describe('DrizzleTaskRepository', () => {
     expect(result.description).toBe(mockReturnedRow.description)
     expect(result.status).toBe(TaskStatus.IN_PROGRESS)
   })
+
+  it('should find active task by id and return Task domain model', async () => {
+    const mockReturnedRow = {
+      id: '123e4567-e89b-42d3-a456-426614174000',
+      title: 'Active Task',
+      description: 'Active task description',
+      status: 'PENDING',
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      updatedAt: new Date('2026-01-01T00:00:00Z'),
+      deletedAt: null,
+    }
+
+    const mockWhere = vi.fn().mockResolvedValue([mockReturnedRow])
+    const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
+    const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+    const mockDb = {
+      select: mockSelect,
+    } as unknown as DrizzleDB
+
+    const repository = new DrizzleTaskRepository(mockDb)
+    const result = await repository.findById('123e4567-e89b-42d3-a456-426614174000')
+
+    expect(mockSelect).toHaveBeenCalledOnce()
+    expect(mockFrom).toHaveBeenCalledOnce()
+    expect(mockWhere).toHaveBeenCalledOnce()
+    expect(result).toBeInstanceOf(Task)
+    expect(result?.id).toBe(mockReturnedRow.id)
+    expect(result?.title).toBe(mockReturnedRow.title)
+    expect(result?.description).toBe(mockReturnedRow.description)
+    expect(result?.status).toBe(TaskStatus.PENDING)
+  })
+
+  it('should return null when task is not found', async () => {
+    const mockWhere = vi.fn().mockResolvedValue([])
+    const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
+    const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+    const mockDb = {
+      select: mockSelect,
+    } as unknown as DrizzleDB
+
+    const repository = new DrizzleTaskRepository(mockDb)
+    const result = await repository.findById('123e4567-e89b-42d3-a456-426614174999')
+
+    expect(mockSelect).toHaveBeenCalledOnce()
+    expect(mockFrom).toHaveBeenCalledOnce()
+    expect(mockWhere).toHaveBeenCalledOnce()
+    expect(result).toBeNull()
+  })
 })

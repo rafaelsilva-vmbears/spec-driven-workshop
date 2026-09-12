@@ -25,12 +25,12 @@ class InMemoryTaskRepository implements TaskRepository {
     this.tasks = []
   }
 
-  getAll(): Task[] {
-    return this.tasks
+  addDirectly(task: Task): void {
+    this.tasks.push(task)
   }
 }
 
-describe('POST /tasks (Integration)', () => {
+describe('GET /tasks/:id (Integration)', () => {
   let app: NestFastifyApplication
   let inMemoryRepo: InMemoryTaskRepository
   const VALID_API_KEY = 'test-api-key-secret'
@@ -80,9 +80,9 @@ describe('POST /tasks (Integration)', () => {
 
   describe('Authentication', () => {
     it('should return 401 when x-api-key header is missing', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .send({ title: 'Task without auth' })
+      const response = await request(app.getHttpServer()).get(
+        '/tasks/123e4567-e89b-42d3-a456-426614174000'
+      )
 
       expect(response.status).toBe(401)
       expect(response.body).toEqual({
@@ -93,9 +93,8 @@ describe('POST /tasks (Integration)', () => {
 
     it('should return 401 when x-api-key header is invalid', async () => {
       const response = await request(app.getHttpServer())
-        .post('/tasks')
+        .get('/tasks/123e4567-e89b-42d3-a456-426614174000')
         .set('x-api-key', 'wrong-key')
-        .send({ title: 'Task with bad auth' })
 
       expect(response.status).toBe(401)
       expect(response.body).toEqual({
@@ -105,101 +104,82 @@ describe('POST /tasks (Integration)', () => {
     })
   })
 
-  describe('Success Cases', () => {
-    it('should create a task with minimal data (HTTP 201)', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({ title: 'Minimal task' })
-
-      expect(response.status).toBe(201)
-      expect(response.body).toMatchObject({
-        title: 'Minimal task',
-        description: null,
-        status: TaskStatus.PENDING,
-      })
-      expect(response.body.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      )
-      expect(response.body.createdAt).toBeDefined()
-      expect(response.body.updatedAt).toBeDefined()
-      expect(inMemoryRepo.getAll()).toHaveLength(1)
-    })
-
-    it('should create a task with full data (HTTP 201)', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({
-          title: 'Full task',
-          description: 'Detailed description for task',
-          status: TaskStatus.IN_PROGRESS,
-        })
-
-      expect(response.status).toBe(201)
-      expect(response.body).toMatchObject({
-        title: 'Full task',
-        description: 'Detailed description for task',
+  describe('Success Cases (HTTP 200)', () => {
+    it('should return existing active task details by UUID', async () => {
+      const taskId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+      const existingTask = new Task({
+        id: taskId,
+        title: 'Document Task API',
+        description: 'Detail specification for US-003',
         status: TaskStatus.IN_PROGRESS,
       })
-      expect(response.body.id).toBeDefined()
-      expect(inMemoryRepo.getAll()).toHaveLength(1)
+      inMemoryRepo.addDirectly(existingTask)
+
+      const response = await request(app.getHttpServer())
+        .get(`/tasks/${taskId}`)
+        .set('x-api-key', VALID_API_KEY)
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        id: taskId,
+        title: 'Document Task API',
+        description: 'Detail specification for US-003',
+        status: TaskStatus.IN_PROGRESS,
+        createdAt: existingTask.createdAt.toISOString(),
+        updatedAt: existingTask.updatedAt.toISOString(),
+      })
+    })
+  })
+
+  describe('Not Found Cases (HTTP 404)', () => {
+    it('should return 404 with TASK_NOT_FOUND when task does not exist', async () => {
+      const nonExistentId = '123e4567-e89b-42d3-a456-426614174999'
+
+      const response = await request(app.getHttpServer())
+        .get(`/tasks/${nonExistentId}`)
+        .set('x-api-key', VALID_API_KEY)
+
+      expect(response.status).toBe(404)
+      expect(response.body).toEqual({
+        code: 'TASK_NOT_FOUND',
+        message: `Task with id '${nonExistentId}' not found`,
+      })
+    })
+
+    it('should return 404 with TASK_NOT_FOUND when task was soft-deleted', async () => {
+      const softDeletedId = 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380b22'
+      const softDeletedTask = new Task({
+        id: softDeletedId,
+        title: 'Soft-deleted task',
+        description: 'Should not be accessible via GET',
+        status: TaskStatus.PENDING,
+        deletedAt: new Date(),
+      })
+      inMemoryRepo.addDirectly(softDeletedTask)
+
+      const response = await request(app.getHttpServer())
+        .get(`/tasks/${softDeletedId}`)
+        .set('x-api-key', VALID_API_KEY)
+
+      expect(response.status).toBe(404)
+      expect(response.body).toEqual({
+        code: 'TASK_NOT_FOUND',
+        message: `Task with id '${softDeletedId}' not found`,
+      })
     })
   })
 
   describe('Validation Failures (HTTP 400)', () => {
-    it('should return 400 when title is missing', async () => {
+    it('should return 400 when id is not a valid UUID', async () => {
+      const invalidId = 'not-a-valid-uuid'
+
       const response = await request(app.getHttpServer())
-        .post('/tasks')
+        .get(`/tasks/${invalidId}`)
         .set('x-api-key', VALID_API_KEY)
-        .send({})
 
       expect(response.status).toBe(400)
-      expect(response.body.code).toBe('VALIDATION_ERROR')
-      expect(response.body.message).toBe('Validation failed')
-      expect(Array.isArray(response.body.details)).toBe(true)
-      expect(inMemoryRepo.getAll()).toHaveLength(0)
-    })
-
-    it('should return 400 when title is shorter than 3 characters', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({ title: 'ab' })
-
-      expect(response.status).toBe(400)
-      expect(response.body.code).toBe('VALIDATION_ERROR')
-      expect(response.body.message).toBe('Validation failed')
-      expect(inMemoryRepo.getAll()).toHaveLength(0)
-    })
-
-    it('should return 400 when status is invalid', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({
-          title: 'Valid title',
-          status: 'COMPLETED',
-        })
-
-      expect(response.status).toBe(400)
-      expect(response.body.code).toBe('VALIDATION_ERROR')
-      expect(response.body.message).toBe('Validation failed')
-      expect(inMemoryRepo.getAll()).toHaveLength(0)
-    })
-
-    it('should return 400 when unknown properties are sent (forbidNonWhitelisted)', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/tasks')
-        .set('x-api-key', VALID_API_KEY)
-        .send({
-          title: 'Valid title',
-          extraField: 'not-allowed',
-        })
-
-      expect(response.status).toBe(400)
-      expect(response.body.code).toBe('VALIDATION_ERROR')
-      expect(inMemoryRepo.getAll()).toHaveLength(0)
+      expect(response.body.code).toBe('BAD_REQUEST')
+      expect(response.body.message).toMatch(/uuid.*expected/i)
     })
   })
 })
