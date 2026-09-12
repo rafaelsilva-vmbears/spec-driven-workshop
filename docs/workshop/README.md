@@ -74,7 +74,7 @@ Neste workshop, utilizamos o **Issue Tracker Local Markdown**. Os tickets de tra
 |---|---|---|
 | Runtime & Pacotes | Node.js 22+ & pnpm 10+ | Ambiente base com tipagem estrita |
 | Framework & HTTP | NestJS 11 + Express/Fastify | Camada de apresentação e injeção de dependência |
-| Linter & Formatter | Biome (`pnpm check`) | Linting e formatação instantânea |
+| Linter & Formatter | ESLint + Prettier (`pnpm check`) | Linting e validação de formatação |
 | ORM & Banco | Drizzle ORM + PostgreSQL 15 | Schemas tipados e migrations atômicas |
 | Testes | Vitest + Supertest | Testes unitários e de integração de alta velocidade |
 | Observabilidade | Pino + nestjs-pino | Logs estruturados em formato JSON |

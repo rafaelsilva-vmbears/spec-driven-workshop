@@ -36,5 +36,5 @@ Neste repositório seguimos **Engenharia de Software Assistida por Agentes** (se
 
 5. **Padrões de Código & Formatação**:
    - TypeScript estrito (ES2023).
-   - Biome para linting e formatação rápida (`pnpm check`).
+   - ESLint e Prettier para linting e formatação rápida (`pnpm check`).
    - Vitest para testes unitários e de integração.
