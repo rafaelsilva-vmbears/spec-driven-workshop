@@ -21,6 +21,7 @@ import {
   UpdateTaskDto,
 } from '../dto'
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
+import { DeleteTaskUseCase } from '../../../domain/usecase/delete-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
 import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
 import { UpdateTaskUseCase } from '../../../domain/usecase/update-task.usecase'
@@ -33,7 +34,8 @@ export class TasksController {
     private readonly createTaskUseCase: CreateTaskUseCase,
     private readonly getTaskByIdUseCase: GetTaskByIdUseCase,
     private readonly listTasksUseCase: ListTasksUseCase,
-    private readonly updateTaskUseCase: UpdateTaskUseCase
+    private readonly updateTaskUseCase: UpdateTaskUseCase,
+    private readonly deleteTaskUseCase: DeleteTaskUseCase
   ) {}
 
   @Post()
@@ -233,7 +235,9 @@ export class TasksController {
     description: 'Tarefa não encontrada',
     type: ErrorResponseDto,
   })
-  async delete(@Param('id') _id: string): Promise<void> {
-    throw new Error('Method not implemented — planned for US-005')
+  async delete(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string
+  ): Promise<void> {
+    await this.deleteTaskUseCase.execute(id)
   }
 }

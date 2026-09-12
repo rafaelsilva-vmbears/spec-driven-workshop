@@ -212,5 +212,44 @@ describe('Task Model', () => {
       expect(() => task.update({ status: 'INVALID' as TaskStatus })).toThrow(TaskValidationException)
     })
   })
+
+  describe('delete method', () => {
+    it('should mark deletedAt and updatedAt with current date when task is active', () => {
+      const initialDate = new Date('2026-01-01T10:00:00Z')
+      const task = new Task({
+        title: 'Tarefa a ser deletada',
+        status: TaskStatus.PENDING,
+        createdAt: initialDate,
+        updatedAt: initialDate,
+      })
+
+      expect(task.deletedAt).toBeNull()
+
+      task.delete()
+
+      expect(task.deletedAt).toBeInstanceOf(Date)
+      expect(task.deletedAt!.getTime()).toBeGreaterThan(initialDate.getTime())
+      expect(task.updatedAt.getTime()).toBeGreaterThan(initialDate.getTime())
+    })
+
+    it('should throw TaskValidationException when task is already deleted', () => {
+      const task = new Task({
+        title: 'Tarefa já excluída',
+        status: TaskStatus.PENDING,
+        deletedAt: new Date('2026-01-01T10:00:00Z'),
+      })
+
+      expect(() => task.delete()).toThrow(TaskValidationException)
+
+      try {
+        task.delete()
+      } catch (error) {
+        expect(error).toBeInstanceOf(TaskValidationException)
+        const valErr = error as TaskValidationException
+        expect(valErr.errorCode).toBe('VALIDATION_ERROR')
+        expect(valErr.message).toBe('Task is already deleted')
+      }
+    })
+  })
 })
 

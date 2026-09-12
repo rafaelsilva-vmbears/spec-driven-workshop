@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TasksController } from './tasks.controller'
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
+import { DeleteTaskUseCase } from '../../../domain/usecase/delete-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
 import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
 import { UpdateTaskUseCase } from '../../../domain/usecase/update-task.usecase'
@@ -15,6 +16,7 @@ describe('TasksController (Contract / API Spec)', () => {
   let getTaskByIdUseCase: GetTaskByIdUseCase
   let listTasksUseCase: ListTasksUseCase
   let updateTaskUseCase: UpdateTaskUseCase
+  let deleteTaskUseCase: DeleteTaskUseCase
 
   beforeEach(async () => {
     const mockCreateTaskUseCase = {
@@ -27,6 +29,9 @@ describe('TasksController (Contract / API Spec)', () => {
       execute: vi.fn(),
     }
     const mockUpdateTaskUseCase = {
+      execute: vi.fn(),
+    }
+    const mockDeleteTaskUseCase = {
       execute: vi.fn(),
     }
 
@@ -49,6 +54,10 @@ describe('TasksController (Contract / API Spec)', () => {
           provide: UpdateTaskUseCase,
           useValue: mockUpdateTaskUseCase,
         },
+        {
+          provide: DeleteTaskUseCase,
+          useValue: mockDeleteTaskUseCase,
+        },
       ],
     }).compile()
 
@@ -57,6 +66,7 @@ describe('TasksController (Contract / API Spec)', () => {
     getTaskByIdUseCase = module.get<GetTaskByIdUseCase>(GetTaskByIdUseCase)
     listTasksUseCase = module.get<ListTasksUseCase>(ListTasksUseCase)
     updateTaskUseCase = module.get<UpdateTaskUseCase>(UpdateTaskUseCase)
+    deleteTaskUseCase = module.get<DeleteTaskUseCase>(DeleteTaskUseCase)
   })
 
   it('should be defined', () => {
@@ -258,6 +268,27 @@ describe('TasksController (Contract / API Spec)', () => {
       ).rejects.toThrow(TaskNotFoundException)
     })
   })
+
+  describe('DELETE /tasks/:id', () => {
+    it('should successfully remove task and return void (204 No Content)', async () => {
+      const taskId = '550e8400-e29b-41d4-a716-446655440000'
+      vi.spyOn(deleteTaskUseCase, 'execute').mockResolvedValue()
+
+      await expect(controller.delete(taskId)).resolves.toBeUndefined()
+      expect(deleteTaskUseCase.execute).toHaveBeenCalledWith(taskId)
+      expect(deleteTaskUseCase.execute).toHaveBeenCalledTimes(1)
+    })
+
+    it('should propagate TaskNotFoundException when task does not exist', async () => {
+      const taskId = '550e8400-e29b-41d4-a716-446655440000'
+      vi.spyOn(deleteTaskUseCase, 'execute').mockRejectedValue(
+        new TaskNotFoundException(taskId)
+      )
+
+      await expect(controller.delete(taskId)).rejects.toThrow(TaskNotFoundException)
+    })
+  })
 })
+
 
 

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { TaskRepository } from '../../../domain/port/repositories/task.repository'
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
+import { DeleteTaskUseCase } from '../../../domain/usecase/delete-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
 import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
 import { UpdateTaskUseCase } from '../../../domain/usecase/update-task.usecase'
@@ -14,12 +15,20 @@ import { TasksController } from '../controllers/tasks.controller'
     GetTaskByIdUseCase,
     ListTasksUseCase,
     UpdateTaskUseCase,
+    DeleteTaskUseCase,
     {
       provide: TaskRepository,
       useClass: TaskRepositoryImpl,
     },
   ],
-  exports: [CreateTaskUseCase, GetTaskByIdUseCase, ListTasksUseCase, UpdateTaskUseCase, TaskRepository],
+  exports: [
+    CreateTaskUseCase,
+    GetTaskByIdUseCase,
+    ListTasksUseCase,
+    UpdateTaskUseCase,
+    DeleteTaskUseCase,
+    TaskRepository,
+  ],
 })
 export class TasksModule {}
 

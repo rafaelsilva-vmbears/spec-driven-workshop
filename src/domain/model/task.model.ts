@@ -97,6 +97,18 @@ export class Task {
     return true
   }
 
+  delete(): void {
+    if (this._deletedAt !== null) {
+      throw new TaskValidationException('Task is already deleted', {
+        field: 'deletedAt',
+        value: this._deletedAt,
+      })
+    }
+
+    this._deletedAt = new Date()
+    this._updatedAt = new Date()
+  }
+
   get id(): string {
     return this._id
   }
