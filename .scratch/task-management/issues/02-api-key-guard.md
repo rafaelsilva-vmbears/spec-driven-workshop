@@ -4,15 +4,15 @@
 
 **Blocked by:** 01: Padronização Global de Respostas de Erro (ErrorResponse)
 
-**Status:** ready-for-agent
+**Status:** completed
 
 ## Acceptance Criteria
 
-- [ ] Implementar guard global registrado na raiz da aplicação que inspeciona o header `x-api-key` contra o valor definido na variável de ambiente `API_KEY`.
-- [ ] Requisições com header ausente ou chave inválida devem ser barradas com status HTTP 401 e payload `ErrorResponse` contendo o código `UNAUTHORIZED`.
-- [ ] Criar decorator explícito `@Public()` para liberar endpoints de infraestrutura e documentação sem exigir o header.
-- [ ] Configuração segura no `.env.example` com chave padrão de desenvolvimento.
-- [ ] Testes unitários do guard cobrindo:
+- [x] Implementar guard global registrado na raiz da aplicação que inspeciona o header `x-api-key` contra o valor definido na variável de ambiente `API_KEY`.
+- [x] Requisições com header ausente ou chave inválida devem ser barradas com status HTTP 401 e payload `ErrorResponse` contendo o código `UNAUTHORIZED`.
+- [x] Criar decorator explícito `@Public()` para liberar endpoints de infraestrutura e documentação sem exigir o header.
+- [x] Configuração segura no `.env.example` com chave padrão de desenvolvimento.
+- [x] Testes unitários do guard cobrindo:
   - Requisição sem header `x-api-key` (deve rejeitar com 401).
   - Requisição com chave inválida (deve rejeitar com 401).
   - Requisição com chave válida (deve autorizar com sucesso).
