@@ -1,43 +1,51 @@
-# Spec-Driven Development — Workshop
+# Agentic Software Engineering — Workshop
 
-> Workshop prático para times de engenharia aprenderem a construir APIs usando o fluxo:
+> Workshop prático para times de engenharia aprenderem a construir APIs robustas com IA através de **disciplinas de engenharia de software real**, combatendo o *vibe coding*:
 >
-> **US (PO) → Spec (OpenSpec) → Código (NestJS + Drizzle) → Testes**
+> **Requisito → Grilling & Domínio (`/grill-with-docs`) → Spec (`/to-spec`) → Tracer Bullets (`/to-tickets`) → TDD & Code Review (`/implement`)**
 
 ---
 
 ## O que é este repositório?
 
-Este é o **ponto de partida** do workshop. Ele contém apenas a documentação que um time receberia antes de iniciar o desenvolvimento:
+Este repositório é a base do workshop de desenvolvimento assistido por agentes de IA baseado no framework **"Skills For Real Engineers"** (por Matt Pocock).
 
-- **User Stories** escritas pelo PO (7 USs cobrindo um MVP de Task Management)
-- **Padrões arquiteturais** que o time deve seguir
-- **Tutorial passo a passo** para construir a API do zero
+Diferente de abordagens baseadas em suposições ou geradores monolíticos rígidos, este workshop ensina como aplicar princípios clássicos de engenharia (*Extreme Programming*, *Pragmatic Programmer*, *Domain-Driven Design* e *A Philosophy of Software Design*):
 
-O código-fonte, as especificações OpenSpec, os testes e toda a infraestrutura serão **criados durante o workshop**.
+1. **Alinhamento Rigoroso**: Evitar ambiguidades através de entrevistas ativas (*grilling*).
+2. **Linguagem Ubíqua & Decisões Arquiteturais**: Manter um glossário vivo em `CONTEXT.md` e registros duráveis em `docs/adr/`.
+3. **Issue Tracker Local e Autônomo**: Rastreabilidade de tarefas em markdown local dentro de `.scratch/`, sem dependência de credenciais externas.
+4. **Fatias Verticais (*Tracer Bullets*)**: Dividir requisitos em fatias ponta a ponta com grafo explícito de dependências (`Blocked by: NN`).
+5. **Implementação Disciplinada**: TDD guiado por costuras públicas (*seams*), arquitetura de módulos profundos (*deep modules*) e revisão em dois eixos (*code review* de padrões e aderência à spec) antes de commitar.
 
 ---
 
 ## Estrutura do Repositório
 
-```
+```text
 spec-driven-workshop/
-├── README.md                       ← Este arquivo
-├── .gitignore
-│
-└── docs/                           ← Documentação (ponto de partida)
-    ├── user-stories.md             ← Índice das 7 User Stories
-    ├── us-001-criar-tarefa.md      ← POST /tasks
-    ├── us-002-listar-tarefas.md    ← GET /tasks
-    ├── us-003-consultar-tarefa.md  ← GET /tasks/{id}
-    ├── us-004-atualizar-tarefa.md  ← PATCH /tasks/{id}
-    ├── us-005-remover-tarefa.md    ← DELETE /tasks/{id}
-    ├── us-006-autenticacao-api-key.md ← Guard x-api-key
-    ├── us-007-padronizar-erros.md  ← ErrorResponse
-    ├── architecture.md             ← Arquitetura e padrões técnicos alvo
-    ├── adr/                        ← Architecture Decision Records (vazio — preenchido durante o workshop)
-    └── workshop/                   ← Tutorial reproduzível passo a passo
-        └── README.md
+├── README.md                       ← Visão geral e introdução
+├── AGENTS.md                       ← Constituição operacional dos Coding Agents
+├── CONTEXT.md                      ← Glossário ubíquo e modelo de domínio
+├── .scratch/                       ← Issue Tracker Local Markdown (specs e tickets)
+│   └── task-management/
+│       ├── spec.md                 ← Especificação sintetizada (/to-spec)
+│       └── issues/                 ← Fatias verticais com dependências (/to-tickets)
+├── .agents/
+│   └── skills/                     ← Skills de engenharia e produtividade
+│       ├── grill-with-docs/        ← Entrevista ativa, glossário e ADRs
+│       ├── to-spec/                ← Síntese de especificação técnica
+│       ├── to-tickets/             ← Fatiamento em tracer bullets
+│       ├── implement/              ← Orquestração de implementação
+│       ├── tdd/                    ← Ciclo Red-Green-Refactor nas costuras
+│       ├── code-review/            ← Revisão em dois eixos (Padrões + Spec)
+│       └── diagnosing-bugs/        ← Diagnóstico disciplinado de defeitos
+├── docs/
+│   ├── user-stories.md             ← Requisitos de negócio (7 User Stories)
+│   ├── adr/                        ← Architecture Decision Records
+│   ├── agents/                     ← Configuração do Issue Tracker e Domínio
+│   └── workshop/                   ← Guia passo a passo do workshop
+└── src/                            ← Código-fonte da API (NestJS + Drizzle)
 ```
 
 ---
@@ -47,58 +55,40 @@ spec-driven-workshop/
 - Node.js 22+
 - pnpm 10+
 - Docker (para PostgreSQL)
-- Editor com suporte a TypeScript (VS Code, Antigravity IDE, etc.)
-
----
-
-## Como começar
-
-1. **Leia as User Stories** em [`docs/user-stories.md`](docs/user-stories.md) — são os requisitos do PO.
-2. **Consulte a arquitetura** em [`docs/architecture.md`](docs/architecture.md) — são os padrões que o time segue.
-3. **Siga o tutorial** em [`docs/workshop/`](docs/workshop/) — é o passo a passo para construir a API.
-
-O tutorial cobre 12 etapas, desde a inicialização do OpenSpec até a validação final com pirâmide completa de testes.
+- Editor compatível com agentes de IA (Antigravity IDE, Cursor, VS Code com Claude Code, etc.)
 
 ---
 
 ## O que será construído
 
-Uma **API REST de gerenciamento de tarefas** com:
+Uma **API REST de gerenciamento de tarefas** completa:
 
 | Feature | Endpoint | US |
 |---|---|---|
+| Padronização de Erros | Global | US-007 |
+| Autenticação via API Key | Global (`x-api-key`) | US-006 |
 | Criar tarefa | `POST /tasks` | US-001 |
-| Listar tarefas (paginado) | `GET /tasks` | US-002 |
 | Consultar tarefa | `GET /tasks/{id}` | US-003 |
+| Listar tarefas (paginado) | `GET /tasks` | US-002 |
 | Atualizar tarefa | `PATCH /tasks/{id}` | US-004 |
 | Remover tarefa (soft delete) | `DELETE /tasks/{id}` | US-005 |
-| Autenticação via API Key | Todos | US-006 |
-| Respostas de erro padronizadas | Todos | US-007 |
-
-### Stack alvo
-
-| Componente | Tecnologia |
-|---|---|
-| Framework | NestJS 12 + Fastify 5 |
-| ORM | Drizzle ORM |
-| Banco | PostgreSQL 15 (Docker) |
-| Testes | Vitest + Supertest + Playwright |
-| Spec | OpenSpec (Spec-Driven Development) |
 
 ---
 
-## Para times usando AI Coding Agents
+## Como começar o workshop
 
-Se o time usa ferramentas como Antigravity, Cursor ou Copilot, o workshop pode ser acelerado com os comandos OpenSpec:
+Siga o roteiro passo a passo em **[`docs/workshop/README.md`](docs/workshop/README.md)**. O tutorial guia o time através das seguintes etapas fundamentais:
 
 ```bash
-# Inicializar o OpenSpec (Etapa 0)
-npx @fission-ai/openspec@latest init --tools antigravity --language pt-br --no-animation .
+# 1. Alinhamento e modelagem de domínio
+/grill-with-docs
 
-# Propor, implementar e arquivar mudanças (Etapas 1+)
-/opsx-propose <nome-da-change>
-/opsx-apply
-/opsx-archive
+# 2. Síntese da especificação técnica
+/to-spec
+
+# 3. Fatiamento em tickets com dependências
+/to-tickets
+
+# 4. Implementação com TDD e Code Review
+/implement
 ```
-
-Após o `openspec init`, um arquivo `AGENTS.md` com instruções operacionais deve ser criado na raiz. Consulte a [documentação de arquitetura](docs/architecture.md) para os padrões que o agente deve seguir.
