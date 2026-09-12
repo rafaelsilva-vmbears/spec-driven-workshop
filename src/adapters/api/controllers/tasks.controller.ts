@@ -15,12 +15,14 @@ import { ApiExtension, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiSecurit
 import {
   CreateTaskDto,
   ErrorResponseDto,
+  ListTasksQueryDto,
   PaginatedTasksResponseDto,
   TaskResponseDto,
   UpdateTaskDto,
 } from '../dto'
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
+import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
 
 @ApiTags('tasks')
 @ApiSecurity('ApiKeyAuth')
@@ -28,7 +30,8 @@ import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.useca
 export class TasksController {
   constructor(
     private readonly createTaskUseCase: CreateTaskUseCase,
-    private readonly getTaskByIdUseCase: GetTaskByIdUseCase
+    private readonly getTaskByIdUseCase: GetTaskByIdUseCase,
+    private readonly listTasksUseCase: ListTasksUseCase
   ) {}
 
   @Post()
@@ -93,8 +96,22 @@ export class TasksController {
     description: 'Autenticação necessária ou API Key inválida',
     type: ErrorResponseDto,
   })
-  async list(@Query('page') _page?: number, @Query('pageSize') _pageSize?: number): Promise<PaginatedTasksResponseDto> {
-    throw new Error('Method not implemented — planned for US-002')
+  async list(@Query() query: ListTasksQueryDto): Promise<PaginatedTasksResponseDto> {
+    const result = await this.listTasksUseCase.execute(query)
+
+    return {
+      items: result.items.map((task) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description ?? undefined,
+        status: task.status,
+        createdAt: task.createdAt.toISOString(),
+        updatedAt: task.updatedAt.toISOString(),
+      })),
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+    }
   }
 
   @Get(':id')

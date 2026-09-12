@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TasksController } from './tasks.controller'
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
+import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
 import { TaskNotFoundException } from '../../../domain/exception/task-not-found.exception'
 import { Task, TaskStatus } from '../../../domain/model/task.model'
 import { CreateTaskDto } from '../dto'
@@ -11,12 +12,16 @@ describe('TasksController (Contract / API Spec)', () => {
   let controller: TasksController
   let createTaskUseCase: CreateTaskUseCase
   let getTaskByIdUseCase: GetTaskByIdUseCase
+  let listTasksUseCase: ListTasksUseCase
 
   beforeEach(async () => {
     const mockCreateTaskUseCase = {
       execute: vi.fn(),
     }
     const mockGetTaskByIdUseCase = {
+      execute: vi.fn(),
+    }
+    const mockListTasksUseCase = {
       execute: vi.fn(),
     }
 
@@ -31,12 +36,17 @@ describe('TasksController (Contract / API Spec)', () => {
           provide: GetTaskByIdUseCase,
           useValue: mockGetTaskByIdUseCase,
         },
+        {
+          provide: ListTasksUseCase,
+          useValue: mockListTasksUseCase,
+        },
       ],
     }).compile()
 
     controller = module.get<TasksController>(TasksController)
     createTaskUseCase = module.get<CreateTaskUseCase>(CreateTaskUseCase)
     getTaskByIdUseCase = module.get<GetTaskByIdUseCase>(GetTaskByIdUseCase)
+    listTasksUseCase = module.get<ListTasksUseCase>(ListTasksUseCase)
   })
 
   it('should be defined', () => {
@@ -127,4 +137,64 @@ describe('TasksController (Contract / API Spec)', () => {
       ).rejects.toThrow(TaskNotFoundException)
     })
   })
+
+  describe('list', () => {
+    it('should return paginated tasks response with default pagination', async () => {
+      const fixedDate = new Date('2026-09-11T12:00:00.000Z')
+      const mockTask = new Task({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        title: 'Tarefa existente',
+        description: 'Descrição de teste',
+        status: TaskStatus.PENDING,
+        createdAt: fixedDate,
+        updatedAt: fixedDate,
+      })
+
+      vi.spyOn(listTasksUseCase, 'execute').mockResolvedValue({
+        items: [mockTask],
+        total: 1,
+        page: 0,
+        pageSize: 10,
+      })
+
+      const result = await controller.list({})
+
+      expect(listTasksUseCase.execute).toHaveBeenCalledWith({})
+      expect(result).toEqual({
+        items: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            title: 'Tarefa existente',
+            description: 'Descrição de teste',
+            status: TaskStatus.PENDING,
+            createdAt: fixedDate.toISOString(),
+            updatedAt: fixedDate.toISOString(),
+          },
+        ],
+        total: 1,
+        page: 0,
+        pageSize: 10,
+      })
+    })
+
+    it('should return paginated tasks response with custom query parameters', async () => {
+      vi.spyOn(listTasksUseCase, 'execute').mockResolvedValue({
+        items: [],
+        total: 50,
+        page: 2,
+        pageSize: 5,
+      })
+
+      const result = await controller.list({ page: 2, pageSize: 5 })
+
+      expect(listTasksUseCase.execute).toHaveBeenCalledWith({ page: 2, pageSize: 5 })
+      expect(result).toEqual({
+        items: [],
+        total: 50,
+        page: 2,
+        pageSize: 5,
+      })
+    })
+  })
 })
+
