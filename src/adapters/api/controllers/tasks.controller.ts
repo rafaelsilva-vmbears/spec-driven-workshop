@@ -7,11 +7,14 @@ import {
   TaskResponseDto,
   UpdateTaskDto,
 } from '../dto'
+import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
 
 @ApiTags('tasks')
 @ApiSecurity('ApiKeyAuth')
 @Controller('tasks')
 export class TasksController {
+  constructor(private readonly createTaskUseCase: CreateTaskUseCase) {}
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -34,8 +37,21 @@ export class TasksController {
     description: 'Autenticação necessária ou API Key inválida',
     type: ErrorResponseDto,
   })
-  async create(@Body() _dto: CreateTaskDto): Promise<TaskResponseDto> {
-    throw new Error('Method not implemented — planned for US-001')
+  async create(@Body() dto: CreateTaskDto): Promise<TaskResponseDto> {
+    const task = await this.createTaskUseCase.execute({
+      title: dto.title,
+      description: dto.description,
+      status: dto.status,
+    })
+
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description ?? undefined,
+      status: task.status,
+      createdAt: task.createdAt.toISOString(),
+      updatedAt: task.updatedAt.toISOString(),
+    }
   }
 
   @Get()

@@ -3,9 +3,9 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ConfigModule } from '@nestjs/config'
 import { LoggerModule } from 'nestjs-pino'
 import { DrizzleModule } from './adapters/database/drizzle/drizzle.module'
-import { TasksController } from './adapters/api/controllers/tasks.controller'
 import { AllExceptionsFilter } from './adapters/api/filters/global-exception.filter'
 import { ApiKeyGuard } from './adapters/api/guards/api-key.guard'
+import { TasksModule } from './adapters/api/tasks/tasks.module'
 
 @Module({
   imports: [
@@ -13,6 +13,7 @@ import { ApiKeyGuard } from './adapters/api/guards/api-key.guard'
       isGlobal: true,
     }),
     DrizzleModule,
+    TasksModule,
     LoggerModule.forRoot({
       pinoHttp: {
         transport:
@@ -28,7 +29,7 @@ import { ApiKeyGuard } from './adapters/api/guards/api-key.guard'
       },
     }),
   ],
-  controllers: [TasksController],
+  controllers: [],
   providers: [
     {
       provide: APP_FILTER,
