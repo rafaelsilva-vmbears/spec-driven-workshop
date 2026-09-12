@@ -145,4 +145,72 @@ describe('Task Model', () => {
       }
     })
   })
+
+  describe('update method', () => {
+    it('should update title and status, renew updatedAt, and return true', () => {
+      const initialDate = new Date('2026-01-01T10:00:00Z')
+      const task = new Task({
+        title: 'Título original',
+        description: 'Descrição original',
+        status: TaskStatus.PENDING,
+        createdAt: initialDate,
+        updatedAt: initialDate,
+      })
+
+      const changed = task.update({
+        title: 'Título atualizado',
+        status: TaskStatus.IN_PROGRESS,
+      })
+
+      expect(changed).toBe(true)
+      expect(task.title).toBe('Título atualizado')
+      expect(task.description).toBe('Descrição original')
+      expect(task.status).toBe(TaskStatus.IN_PROGRESS)
+      expect(task.updatedAt.getTime()).toBeGreaterThan(initialDate.getTime())
+    })
+
+    it('should clear description when null is provided', () => {
+      const task = Task.create({
+        title: 'Tarefa com descrição',
+        description: 'Descrição existente',
+      })
+
+      const changed = task.update({ description: null })
+
+      expect(changed).toBe(true)
+      expect(task.description).toBeNull()
+    })
+
+    it('should return false and keep updatedAt unchanged when no fields are modified (no-op)', () => {
+      const initialDate = new Date('2026-01-01T10:00:00Z')
+      const task = new Task({
+        title: 'Mesmo título',
+        description: 'Mesma descrição',
+        status: TaskStatus.PENDING,
+        createdAt: initialDate,
+        updatedAt: initialDate,
+      })
+
+      const changedEmpty = task.update({})
+      expect(changedEmpty).toBe(false)
+      expect(task.updatedAt).toBe(initialDate)
+
+      const changedSame = task.update({
+        title: 'Mesmo título',
+        description: 'Mesma descrição',
+        status: TaskStatus.PENDING,
+      })
+      expect(changedSame).toBe(false)
+      expect(task.updatedAt).toBe(initialDate)
+    })
+
+    it('should validate invariants during update and throw TaskValidationException', () => {
+      const task = Task.create({ title: 'Título válido' })
+
+      expect(() => task.update({ title: 'a' })).toThrow(TaskValidationException)
+      expect(() => task.update({ description: 'd'.repeat(2001) })).toThrow(TaskValidationException)
+      expect(() => task.update({ status: 'INVALID' as TaskStatus })).toThrow(TaskValidationException)
+    })
+  })
 })
+

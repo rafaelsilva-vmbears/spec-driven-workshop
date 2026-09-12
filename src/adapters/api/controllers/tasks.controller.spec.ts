@@ -4,6 +4,7 @@ import { TasksController } from './tasks.controller'
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
 import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
+import { UpdateTaskUseCase } from '../../../domain/usecase/update-task.usecase'
 import { TaskNotFoundException } from '../../../domain/exception/task-not-found.exception'
 import { Task, TaskStatus } from '../../../domain/model/task.model'
 import { CreateTaskDto } from '../dto'
@@ -13,6 +14,7 @@ describe('TasksController (Contract / API Spec)', () => {
   let createTaskUseCase: CreateTaskUseCase
   let getTaskByIdUseCase: GetTaskByIdUseCase
   let listTasksUseCase: ListTasksUseCase
+  let updateTaskUseCase: UpdateTaskUseCase
 
   beforeEach(async () => {
     const mockCreateTaskUseCase = {
@@ -22,6 +24,9 @@ describe('TasksController (Contract / API Spec)', () => {
       execute: vi.fn(),
     }
     const mockListTasksUseCase = {
+      execute: vi.fn(),
+    }
+    const mockUpdateTaskUseCase = {
       execute: vi.fn(),
     }
 
@@ -40,6 +45,10 @@ describe('TasksController (Contract / API Spec)', () => {
           provide: ListTasksUseCase,
           useValue: mockListTasksUseCase,
         },
+        {
+          provide: UpdateTaskUseCase,
+          useValue: mockUpdateTaskUseCase,
+        },
       ],
     }).compile()
 
@@ -47,6 +56,7 @@ describe('TasksController (Contract / API Spec)', () => {
     createTaskUseCase = module.get<CreateTaskUseCase>(CreateTaskUseCase)
     getTaskByIdUseCase = module.get<GetTaskByIdUseCase>(GetTaskByIdUseCase)
     listTasksUseCase = module.get<ListTasksUseCase>(ListTasksUseCase)
+    updateTaskUseCase = module.get<UpdateTaskUseCase>(UpdateTaskUseCase)
   })
 
   it('should be defined', () => {
@@ -196,5 +206,58 @@ describe('TasksController (Contract / API Spec)', () => {
       })
     })
   })
+
+  describe('update', () => {
+    it('should update task and return mapped TaskResponseDto', async () => {
+      const fixedDate = new Date('2026-09-11T12:00:00.000Z')
+      const updatedDate = new Date('2026-09-11T12:30:00.000Z')
+      const taskId = '550e8400-e29b-41d4-a716-446655440000'
+
+      const updatedTask = new Task({
+        id: taskId,
+        title: 'Título atualizado',
+        description: 'Nova descrição',
+        status: TaskStatus.IN_PROGRESS,
+        createdAt: fixedDate,
+        updatedAt: updatedDate,
+      })
+
+      vi.spyOn(updateTaskUseCase, 'execute').mockResolvedValue(updatedTask)
+
+      const result = await controller.update(taskId, {
+        title: 'Título atualizado',
+        description: 'Nova descrição',
+        status: TaskStatus.IN_PROGRESS,
+      })
+
+      expect(updateTaskUseCase.execute).toHaveBeenCalledWith({
+        id: taskId,
+        title: 'Título atualizado',
+        description: 'Nova descrição',
+        status: TaskStatus.IN_PROGRESS,
+      })
+
+      expect(result).toEqual({
+        id: taskId,
+        title: 'Título atualizado',
+        description: 'Nova descrição',
+        status: TaskStatus.IN_PROGRESS,
+        createdAt: fixedDate.toISOString(),
+        updatedAt: updatedDate.toISOString(),
+      })
+    })
+
+    it('should propagate TaskNotFoundException when task does not exist', async () => {
+      const taskId = '550e8400-e29b-41d4-a716-446655440000'
+      vi.spyOn(updateTaskUseCase, 'execute').mockRejectedValue(
+        new TaskNotFoundException(taskId)
+      )
+
+      await expect(
+        controller.update(taskId, { title: 'Novo título' })
+      ).rejects.toThrow(TaskNotFoundException)
+    })
+  })
 })
+
 

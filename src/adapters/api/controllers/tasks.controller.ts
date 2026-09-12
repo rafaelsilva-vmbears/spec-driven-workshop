@@ -23,6 +23,7 @@ import {
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
 import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
+import { UpdateTaskUseCase } from '../../../domain/usecase/update-task.usecase'
 
 @ApiTags('tasks')
 @ApiSecurity('ApiKeyAuth')
@@ -31,7 +32,8 @@ export class TasksController {
   constructor(
     private readonly createTaskUseCase: CreateTaskUseCase,
     private readonly getTaskByIdUseCase: GetTaskByIdUseCase,
-    private readonly listTasksUseCase: ListTasksUseCase
+    private readonly listTasksUseCase: ListTasksUseCase,
+    private readonly updateTaskUseCase: UpdateTaskUseCase
   ) {}
 
   @Post()
@@ -183,8 +185,25 @@ export class TasksController {
     description: 'Tarefa não encontrada',
     type: ErrorResponseDto,
   })
-  async update(@Param('id') _id: string, @Body() _dto: UpdateTaskDto): Promise<TaskResponseDto> {
-    throw new Error('Method not implemented — planned for US-004')
+  async update(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdateTaskDto
+  ): Promise<TaskResponseDto> {
+    const task = await this.updateTaskUseCase.execute({
+      id,
+      title: dto.title,
+      description: dto.description,
+      status: dto.status,
+    })
+
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description ?? undefined,
+      status: task.status,
+      createdAt: task.createdAt.toISOString(),
+      updatedAt: task.updatedAt.toISOString(),
+    }
   }
 
   @Delete(':id')

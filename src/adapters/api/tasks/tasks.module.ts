@@ -3,6 +3,7 @@ import { TaskRepository } from '../../../domain/port/repositories/task.repositor
 import { CreateTaskUseCase } from '../../../domain/usecase/create-task.usecase'
 import { GetTaskByIdUseCase } from '../../../domain/usecase/get-task-by-id.usecase'
 import { ListTasksUseCase } from '../../../domain/usecase/list-tasks.usecase'
+import { UpdateTaskUseCase } from '../../../domain/usecase/update-task.usecase'
 import { TaskRepositoryImpl } from '../../database/drizzle/repositories/task.repository.impl'
 import { TasksController } from '../controllers/tasks.controller'
 
@@ -12,12 +13,13 @@ import { TasksController } from '../controllers/tasks.controller'
     CreateTaskUseCase,
     GetTaskByIdUseCase,
     ListTasksUseCase,
+    UpdateTaskUseCase,
     {
       provide: TaskRepository,
       useClass: TaskRepositoryImpl,
     },
   ],
-  exports: [CreateTaskUseCase, GetTaskByIdUseCase, ListTasksUseCase, TaskRepository],
+  exports: [CreateTaskUseCase, GetTaskByIdUseCase, ListTasksUseCase, UpdateTaskUseCase, TaskRepository],
 })
 export class TasksModule {}
 

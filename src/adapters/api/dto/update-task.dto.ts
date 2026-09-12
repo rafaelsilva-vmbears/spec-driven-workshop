@@ -16,14 +16,15 @@ export class UpdateTaskDto {
   title?: string
 
   @ApiPropertyOptional({
-    description: 'Nova descrição detalhada da tarefa',
+    description: 'Nova descrição detalhada da tarefa (enviar null para limpar)',
     maxLength: 2000,
+    nullable: true,
     example: 'Atualização da descrição com novos requisitos',
   })
   @IsString()
   @IsOptional()
   @MaxLength(2000)
-  description?: string
+  description?: string | null
 
   @ApiPropertyOptional({
     description: 'Novo status da tarefa',
