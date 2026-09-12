@@ -6,7 +6,7 @@ Fornece a especificação formal dos contratos da API REST para gerenciamento de
 ## Requirements
 
 ### Requirement: Autenticação obrigatória via API Key
-The system SHALL require a valid API key in the `x-api-key` request header for all `/tasks` endpoints. If the header is missing, the system SHALL respond with HTTP 401 Unauthorized. If the key is invalid, the system SHALL respond with HTTP 401 Unauthorized.
+The system SHALL require a valid API key in the `x-api-key` request header for all protected endpoints by default (Secure by Default). If the header is missing, the system SHALL respond with HTTP 401 Unauthorized. If the key is invalid, the system SHALL respond with HTTP 401 Unauthorized. Endpoints or routes explicitly decorated with `@Public()` SHALL bypass API key validation and allow unauthenticated access.
 
 #### Scenario: Requisição sem header x-api-key
 - **WHEN** cliente envia requisição para `/tasks` sem o header `x-api-key`
@@ -19,6 +19,10 @@ The system SHALL require a valid API key in the `x-api-key` request header for a
 #### Scenario: Requisição com chave válida
 - **WHEN** cliente envia requisição para `/tasks` com header `x-api-key` correspondente à chave configurada
 - **THEN** sistema autoriza o processamento normal da requisição
+
+#### Scenario: Acesso a rota pública
+- **WHEN** cliente envia requisição para uma rota marcada com o decorator `@Public()` sem header `x-api-key`
+- **THEN** sistema libera a execução da rota sem exigir autenticação
 
 ### Requirement: Padronização de respostas de erro
 The system SHALL format all 4xx and 5xx error responses using the `ErrorResponse` schema containing `code` (string), `message` (string), and optional `details` (object). The system SHALL map domain exceptions to specific error codes and corresponding HTTP status codes. The system SHALL map validation failures to HTTP 400 with code `VALIDATION_ERROR`. The system SHALL catch unhandled exceptions, log them with structured logging, and respond with HTTP 500 with code `INTERNAL_SERVER_ERROR`.
