@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { APP_FILTER } from '@nestjs/core'
 import { LoggerModule } from 'nestjs-pino'
+import { GlobalExceptionFilter } from './adapters/api/filters/global-exception.filter'
 import { DrizzleModule } from './adapters/database/drizzle/drizzle.module'
 
 @Module({
@@ -23,6 +25,12 @@ import { DrizzleModule } from './adapters/database/drizzle/drizzle.module'
             : undefined,
       },
     }),
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
   ],
 })
 export class AppModule {}

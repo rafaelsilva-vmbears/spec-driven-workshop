@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
@@ -11,6 +12,13 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger))
   app.setGlobalPrefix('api')
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    })
+  )
 
   const config = new DocumentBuilder()
     .setTitle('Task Management API')
