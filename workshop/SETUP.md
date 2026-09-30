@@ -14,7 +14,6 @@ Os dois trilhos ([A: Matt Pocock](./mattpocock-skills.md) e [B: OpenSpec](./open
 |---|---|---|
 | Node.js | 22+ | `node --version` |
 | pnpm | 11+ | `pnpm --version` |
-| Docker + Compose | recente | `docker compose version` |
 | Editor com agente | Claude Code, Zed, Antigravity ou Codex | — |
 | OpenSpec CLI (só trilho B) | 1.13+ | `npm i -g @fission-ai/openspec@latest && openspec --version` |
 
@@ -38,8 +37,7 @@ git clone <url-do-template> && cd backend-nestjs-template
 git checkout -b workshop/<seu-nome>-<a|b> main     # branch descartável
 pnpm install
 # crie o .env conforme o README da raiz
-docker compose up -d
-pnpm migrate:run
+
 pnpm check && pnpm build && pnpm test              # tudo verde antes de começar
 ```
 
