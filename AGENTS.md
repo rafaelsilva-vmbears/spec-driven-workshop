@@ -47,6 +47,15 @@ docs/
 - **Domain docs**: glossary in `CONTEXT.md`, decisions in `docs/adr/`. See [`docs/agents/domain.md`](docs/agents/domain.md).
 - If `CONTEXT.md` does not exist yet, proceed silently — it is created on demand by `/grill-with-docs`.
 
+### Project-native skills
+
+Skills tailored to this project's Clean Architecture + NestJS + Drizzle stack:
+
+- **`scaffold-feature`**: generate the vertical file skeleton for a new feature (entity, port, use case, repo impl, DTO, controller, module, tests). Use when starting any new feature slice.
+- **`verify-architecture`**: scan for domain purity violations, DIP token misuse, naming convention drift, orphan ports, and export discipline. Use before merging or after scaffolding.
+- **`drizzle-migration`**: guide schema changes in the single `schema.ts` file, generate and apply migrations. Use when adding or altering database tables.
+- **`nest-module-wiring`**: register DIP bindings (`{ provide: AbstractClass, useClass: Impl }`) and wire feature modules into `AppModule`. Use when connecting ports to adapters or debugging injection errors.
+
 ---
 
 ## Architecture constraints
